@@ -23,9 +23,13 @@ const CustomCursor = () => {
   useEffect(() => {
     if (isMobile) return;
 
+    let mouseFrame;
     const handleMouseMove = (e) => {
-      setPosition({ x: e.clientX, y: e.clientY });
-      setHidden(false);
+      if (mouseFrame) cancelAnimationFrame(mouseFrame);
+      mouseFrame = requestAnimationFrame(() => {
+        setPosition({ x: e.clientX, y: e.clientY });
+        setHidden(false);
+      });
     };
 
     const handleMouseLeave = () => {
@@ -61,6 +65,7 @@ const CustomCursor = () => {
       document.removeEventListener('mouseleave', handleMouseLeave);
       document.removeEventListener('mouseenter', handleMouseEnter);
       window.removeEventListener('mouseover', handleMouseOver);
+      if (mouseFrame) cancelAnimationFrame(mouseFrame);
     };
   }, [isMobile]);
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
+import { getOptimizedImageUrl } from '../data';
 
 const ProductCard = ({ product, onSelect }) => {
   const [coords, setCoords] = useState({ x: 0, y: 0 });
@@ -36,10 +37,13 @@ const ProductCard = ({ product, onSelect }) => {
     >
       <div className="product-card-img-wrapper">
         <img
-          src={product.image}
+          src={getOptimizedImageUrl(product.image, 400)}
           alt={product.name}
           className="product-card-img"
           loading="lazy"
+          decoding="async"
+          width="400"
+          height="300"
         />
       </div>
       

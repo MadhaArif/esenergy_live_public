@@ -6,9 +6,9 @@ import Card from '../components/Card';
 import Button from '../components/Button';
 import ScrollReveal from '../components/ScrollReveal';
 
-import residentialImg from '../assets/residential_solar_villa.png';
-import commercialImg from '../assets/commercial_solar_array.png';
-import industrialImg from '../assets/industrial_solar_plant.png';
+import residentialImg from '../assets/residential_solar_villa.webp';
+import commercialImg from '../assets/commercial_solar_array.webp';
+import industrialImg from '../assets/industrial_solar_plant.webp';
 
 const Industries = () => {
   const scrollToSector = (id) => {
@@ -60,6 +60,7 @@ const Industries = () => {
                   alt="Pakistan premium residential solar villa project installation" 
                   className="industry-project-image"
                   loading="lazy" 
+                  decoding="async"
                 />
               </div>
             </div>
@@ -104,6 +105,7 @@ const Industries = () => {
                   alt="Premium office commercial rooftop solar panel array setup" 
                   className="industry-project-image"
                   loading="lazy" 
+                  decoding="async"
                 />
               </div>
             </div>
@@ -170,6 +172,7 @@ const Industries = () => {
                   alt="Pakistan heavy industry textile factory rooftop solar array plant" 
                   className="industry-project-image"
                   loading="lazy" 
+                  decoding="async"
                 />
               </div>
             </div>

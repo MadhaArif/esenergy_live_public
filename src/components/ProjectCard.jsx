@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import residentialImg from '../assets/residential_solar_villa.png';
-import commercialImg from '../assets/commercial_solar_array.png';
-import industrialImg from '../assets/industrial_solar_plant.png';
+import residentialImg from '../assets/residential_solar_villa.webp';
+import commercialImg from '../assets/commercial_solar_array.webp';
+import industrialImg from '../assets/industrial_solar_plant.webp';
 
 const ProjectCard = ({ project, onSelect }) => {
   const getProjectImage = (cat) => {
@@ -20,6 +20,7 @@ const ProjectCard = ({ project, onSelect }) => {
           alt={project.title} 
           className="project-card-image"
           loading="lazy"
+          decoding="async"
         />
         <span className="project-card-badge">
           {project.category.toUpperCase()} PROJECT

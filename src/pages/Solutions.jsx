@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { productsData, solutionCategories, getWhatsAppProductUrl } from '../data';
+import { productsData, solutionCategories, getWhatsAppProductUrl, getOptimizedImageUrl } from '../data';
 import { useCart } from '../context/CartContext';
 import Breadcrumbs from '../components/Breadcrumbs';
 import SectionHeader from '../components/SectionHeader';
@@ -12,6 +12,7 @@ import ScrollReveal from '../components/ScrollReveal';
 const Solutions = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeProductDetail, setActiveProductDetail] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(16);
   const [recentlyViewed, setRecentlyViewed] = useState(() => {
     try {
       const saved = localStorage.getItem('en_energy_recently_viewed');
@@ -57,6 +58,27 @@ const Solutions = () => {
       });
     }
   }, [activeProductDetail]);
+
+  // Reset pagination when category changes
+  useEffect(() => {
+    setVisibleCount(16);
+  }, [selectedCategory]);
+
+  // Infinite scroll intersection observer logic
+  useEffect(() => {
+    if (activeProductDetail) return;
+    const anchor = document.getElementById('solutions-scroll-anchor');
+    if (!anchor) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setVisibleCount(prev => Math.min(prev + 16, filteredProducts.length));
+      }
+    }, { rootMargin: '200px' });
+
+    observer.observe(anchor);
+    return () => observer.disconnect();
+  }, [activeProductDetail, filteredProducts.length]);
 
   // Filter products based on active category tab
   const filteredProducts = selectedCategory === 'all'
@@ -111,9 +133,12 @@ const Solutions = () => {
                 <div className="product-detail-img-col">
                   <div className="product-detail-img-box">
                     <img 
-                      src={activeProductDetail.image} 
+                      src={getOptimizedImageUrl(activeProductDetail.image, 800)} 
                       alt={activeProductDetail.title} 
                       className="product-detail-img"
+                      decoding="async"
+                      width="800"
+                      height="600"
                     />
                   </div>
                 </div>
@@ -279,7 +304,7 @@ const Solutions = () => {
               </div>
 
               <ScrollReveal delay={100} className="solutions-page-grid">
-                {filteredProducts.map((product) => (
+                {filteredProducts.slice(0, visibleCount).map((product) => (
                   <ProductCard
                     key={product.id}
                     product={product}
@@ -289,6 +314,10 @@ const Solutions = () => {
                   />
                 ))}
               </ScrollReveal>
+
+              {visibleCount < filteredProducts.length && (
+                <div id="solutions-scroll-anchor" style={{ height: '10px', margin: '20px 0' }}></div>
+              )}
             </div>
           )}
 

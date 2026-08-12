@@ -168,6 +168,10 @@ const Home = () => {
                   alt="Premium modern architectural home with a high-efficiency rooftop solar panel installation under natural sunlight" 
                   className="hero-image"
                   loading="eager"
+                  fetchpriority="high"
+                  decoding="sync"
+                  width="600"
+                  height="480"
                   style={{
                     transform: !isTouch ? `scale(1.02) translate(${mousePos.x * 6}px, ${mousePos.y * 6}px)` : 'none',
                     transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -284,6 +288,9 @@ const Home = () => {
                   alt="High-efficiency solar cells reflecting bright natural sunlight" 
                   className="brand-intro-image"
                   loading="lazy"
+                  decoding="async"
+                  width="600"
+                  height="450"
                 />
               </div>
               <p className="brand-intro-caption">

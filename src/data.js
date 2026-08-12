@@ -6398,3 +6398,13 @@ export const contactConfig = {
   operatingHours: "Operating hours available on request"
 };
 
+export const getOptimizedImageUrl = (url, width = 400) => {
+  if (!url) return '';
+  if (url.includes('cdn.shopify.com')) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}width=${width}&format=webp`;
+  }
+  return url;
+};
+
+
