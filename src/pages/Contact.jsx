@@ -23,16 +23,32 @@ const Contact = () => {
 
   const [errors, setErrors] = useState({});
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [calcContext, setCalcContext] = useState({ system: null, bill: null });
 
   const hasPhone = contactConfig.phoneNumber || (WHATSAPP_NUMBER && WHATSAPP_NUMBER !== "YOUR_WHATSAPP_NUMBER");
 
-  // Sync sector selection from query parameters (e.g., ?sector=industrial)
+  // Sync sector, system, bill selection from query parameters
   useEffect(() => {
     const queryParams = new URLSearchParams(routerLocation.search);
     const sectorParam = queryParams.get('sector');
-    if (sectorParam && ['residential', 'commercial', 'industrial'].includes(sectorParam)) {
-      setFormData(prev => ({ ...prev, sector: sectorParam }));
-    }
+    const systemParam = queryParams.get('system');
+    const billParam = queryParams.get('bill');
+
+    setFormData(prev => {
+      const updated = { ...prev };
+      if (sectorParam && ['residential', 'commercial', 'industrial'].includes(sectorParam)) {
+        updated.sector = sectorParam;
+      }
+      if (billParam && !isNaN(Number(billParam))) {
+        updated.bill = billParam;
+      }
+      return updated;
+    });
+
+    setCalcContext({
+      system: systemParam || null,
+      bill: billParam && !isNaN(Number(billParam)) ? billParam : null,
+    });
   }, [routerLocation]);
 
   const handleChange = (e) => {
@@ -180,6 +196,54 @@ const Contact = () => {
                 <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '24px' }}>
                   Complete the initial requirements profile below to help our team understand your project before the feasibility discussion.
                 </p>
+
+                {(calcContext.system || calcContext.bill) && (
+                  <div style={{
+                    backgroundColor: 'rgba(194, 155, 56, 0.06)',
+                    border: '1px solid rgba(194, 155, 56, 0.2)',
+                    borderRadius: '8px',
+                    padding: '16px 18px',
+                    marginBottom: '24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    flexWrap: 'wrap',
+                  }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden="true">
+                      <path d="M12 2v4" />
+                      <path d="m16.2 7.8 2.9-2.9" />
+                      <path d="M18 12h4" />
+                      <path d="m16.2 16.2 2.9 2.9" />
+                      <path d="M12 18v4" />
+                      <path d="m4.9 19.1 2.9-2.9" />
+                      <path d="M2 12h4" />
+                      <path d="m4.9 4.9 2.9 2.9" />
+                      <circle cx="12" cy="12" r="4" />
+                    </svg>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{
+                        fontSize: '10px',
+                        fontWeight: '700',
+                        letterSpacing: '0.12em',
+                        textTransform: 'uppercase',
+                        color: 'var(--accent-gold)',
+                        display: 'block',
+                        marginBottom: '4px',
+                      }}>
+                        CALCULATOR CONTEXT
+                      </span>
+                      <span style={{
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        color: 'var(--text-primary)',
+                      }}>
+                        {calcContext.system ? `Recommended ${calcContext.system} system` : ''}
+                        {calcContext.system && calcContext.bill ? ' · ' : ''}
+                        {calcContext.bill ? `Monthly bill: PKR ${Number(calcContext.bill).toLocaleString('en-PK')}` : ''}
+                      </span>
+                    </div>
+                  </div>
+                )}
                 
                 {formSubmitted ? (
                   <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '6px', padding: '30px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '12px' }}>

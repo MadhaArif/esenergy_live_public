@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { getOptimizedImageUrl } from '../data';
 
-const ProductCard = ({ product, onSelect }) => {
+const ProductCard = ({ product, onSelect, className = '', style = {} }) => {
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const [isTouch, setIsTouch] = useState(true);
 
@@ -27,12 +27,13 @@ const ProductCard = ({ product, onSelect }) => {
 
   return (
     <div 
-      className="product-card-premium" 
+      className={`product-card-premium ${className}`}
       onClick={() => onSelect && onSelect(product)}
       onMouseMove={handleMouseMove}
       style={{
         '--mouse-x': `${coords.x}px`,
         '--mouse-y': `${coords.y}px`,
+        ...style
       }}
     >
       <div className="product-card-img-wrapper">

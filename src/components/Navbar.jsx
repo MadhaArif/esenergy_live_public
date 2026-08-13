@@ -95,12 +95,7 @@ const Navbar = () => {
   };
 
   const linkStyle = ({ isActive }) => ({
-    fontSize: '14px',
-    fontWeight: '500',
-    color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-    position: 'relative',
-    padding: '8px 0',
-    transition: 'color 0.3s ease',
+    display: 'none', // deprecated in favor of CSS classes
   });
 
   const mobileNavContainerStyle = {
@@ -129,30 +124,21 @@ const Navbar = () => {
 
         {/* Desktop Menu */}
         <div style={menuStyle} className="desktop-menu">
-          <ul style={{ display: 'flex', listStyle: 'none', gap: '20px', alignItems: 'center', margin: 0, padding: 0 }}>
+          <ul style={{ display: 'flex', listStyle: 'none', gap: '24px', alignItems: 'center', margin: 0, padding: 0 }}>
             {navItems.map((item) => (
               <li key={item.name}>
                 {item.isAnchor ? (
                   <button
                     onClick={() => handleAnchorClick(item.path)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      fontFamily: 'var(--font-main)',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: 'var(--text-secondary)',
-                      padding: '8px 0',
-                      cursor: 'pointer',
-                      transition: 'var(--transition-smooth)',
-                    }}
-                    onMouseEnter={(e) => (e.target.style.color = 'var(--text-primary)')}
-                    onMouseLeave={(e) => (e.target.style.color = 'var(--text-secondary)')}
+                    className="nav-anchor-btn"
                   >
                     {item.name}
                   </button>
                 ) : (
-                  <NavLink to={item.path} style={linkStyle}>
+                  <NavLink 
+                    to={item.path} 
+                    className={({ isActive }) => `nav-link-item ${isActive ? 'active' : ''}`}
+                  >
                     {item.name}
                   </NavLink>
                 )}
@@ -278,10 +264,24 @@ const Navbar = () => {
 
       {/* Responsive stylesheet inject for navbar */}
       <style>{`
-        .desktop-menu ul li a {
+        .nav-link-item {
+          font-family: var(--font-main);
+          font-size: 14px;
+          font-weight: 550;
+          color: var(--text-secondary);
           position: relative;
+          padding: 8px 0;
+          text-decoration: none;
+          transition: color var(--motion-fast) ease;
         }
-        .desktop-menu ul li a::after {
+        .nav-link-item:hover {
+          color: var(--text-primary);
+        }
+        .nav-link-item.active {
+          color: var(--accent-gold);
+          font-weight: 600;
+        }
+        .nav-link-item::after {
           content: '';
           position: absolute;
           bottom: 0;
@@ -293,11 +293,26 @@ const Navbar = () => {
           transform-origin: right;
           transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .desktop-menu ul li a.active::after {
+        .nav-link-item.active::after {
           transform: scaleX(1);
           transform-origin: left;
         }
-        
+
+        .nav-anchor-btn {
+          background: none;
+          border: none;
+          font-family: var(--font-main);
+          font-size: 14px;
+          font-weight: 550;
+          color: var(--text-secondary);
+          padding: 8px 0;
+          cursor: pointer;
+          transition: color var(--motion-fast) ease;
+        }
+        .nav-anchor-btn:hover {
+          color: var(--text-primary);
+        }
+
         .mobile-drawer {
           display: none;
         }

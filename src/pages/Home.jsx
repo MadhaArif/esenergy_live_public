@@ -8,6 +8,8 @@ import FAQAccordion from '../components/FAQAccordion';
 import ProductCard from '../components/ProductCard';
 import ProjectCard from '../components/ProjectCard';
 import BlogCard from '../components/BlogCard';
+import SolarSavingsCalculator from '../components/SolarSavingsCalculator';
+import BeforeAfterBill from '../components/BeforeAfterBill';
 
 // HERO IMAGE CONFIGURATION (Easily swap this URL with a licensed company/project photograph later)
 const HERO_IMAGE_URL = "https://images.unsplash.com/photo-1613665813446-82a78c468a1d?auto=format&fit=crop&w=1200&h=960&q=80";
@@ -22,13 +24,26 @@ const Home = () => {
   
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isTouch, setIsTouch] = useState(true);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   React.useEffect(() => {
     const checkTouch = () => {
       setIsTouch('ontouchstart' in window || navigator.maxTouchPoints > 0);
     };
     checkTouch();
+
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+    const handleMediaChange = (e) => {
+      setPrefersReducedMotion(e.matches);
+    };
+    mediaQuery.addEventListener('change', handleMediaChange);
+    return () => {
+      mediaQuery.removeEventListener('change', handleMediaChange);
+    };
   }, []);
+
+  const headlineWords = ["Solar,", "Engineered", "Around", "You."];
 
   const handleMouseMove = (e) => {
     if (isTouch) return;
@@ -136,33 +151,54 @@ const Home = () => {
   return (
     <div className="home-page">
       {/* 1. Hero Section */}
-      <section 
-        className="premium-hero"
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-      >
+      <section className="premium-hero">
+        {/* Subtle engineering grid background */}
+        <div className="hero-grid-bg" />
         <div className="container">
           <div className="hero-grid">
             {/* Left Column: Text and CTAs */}
             <div className="hero-text-col animate-hero-text">
-              <span className="hero-eyebrow">SMART SOLAR • ENGINEERED FOR PERFORMANCE</span>
-              <h1 className="hero-headline">Power Your Future With Smarter Solar.</h1>
+              <span className="hero-eyebrow">SMART SOLAR / ENGINEERED FOR REAL LIFE</span>
+              <h1 className="hero-headline">
+                {headlineWords.map((word, idx) => (
+                  <span key={idx} className="hero-word-wrapper">
+                    <span 
+                      className="hero-word"
+                      style={{ 
+                        animationDelay: `${0.2 + idx * 0.08}s` 
+                      }}
+                    >
+                      {word}
+                    </span>
+                  </span>
+                ))}
+              </h1>
               <p className="hero-description">
-                Engineered solar solutions designed for reliable energy, greater efficiency, and long-term value.
+                High-performance solar systems designed around your energy use, property, and long-term goals.
               </p>
               <div className="hero-cta-group">
                 <Button to="/contact" className="btn-hero-primary">
-                  Get a Free Consultation →
+                  Get a Free Consultation <span className="btn-arrow">→</span>
                 </Button>
                 <Button to="/solutions" className="btn-hero-secondary">
-                  Explore Solutions →
+                  Explore Solutions <span className="btn-arrow">→</span>
                 </Button>
+              </div>
+
+              <div className="hero-trust-strip">
+                <span className="trust-strip-item">ENGINEERED SYSTEMS</span>
+                <span className="trust-strip-sep">•</span>
+                <span className="trust-strip-item">HYBRID & ON-GRID</span>
+                <span className="trust-strip-sep">•</span>
+                <span className="trust-strip-item">NET METERING READY</span>
+                <span className="trust-strip-sep">•</span>
+                <span className="trust-strip-item">BUILT FOR PAKISTAN</span>
               </div>
             </div>
 
-            {/* Right Column: Media composition and Floating Card */}
+            {/* Right Column: Media composition and Technical Annotation */}
             <div className="hero-media-col animate-hero-media">
-              <div className="hero-image-wrapper" style={{ overflow: 'hidden', borderRadius: '8px' }}>
+              <div className="hero-image-wrapper">
                 <img 
                   src={HERO_IMAGE_URL} 
                   alt="Premium modern architectural home with a high-efficiency rooftop solar panel installation under natural sunlight" 
@@ -172,22 +208,16 @@ const Home = () => {
                   decoding="sync"
                   width="600"
                   height="480"
-                  style={{
-                    transform: !isTouch ? `scale(1.02) translate(${mousePos.x * 6}px, ${mousePos.y * 6}px)` : 'none',
-                    transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                  }}
                 />
                 
-                {/* Floating Glassmorphic Info Card */}
-                <div 
-                  className="hero-floating-card"
-                  style={{
-                    transform: !isTouch ? `translate(${mousePos.x * -12}px, ${mousePos.y * -12}px)` : 'none',
-                    transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                  }}
-                >
-                  <span className="card-label">SMART ENERGY</span>
-                  <span className="card-value">Designed around your needs</span>
+                {/* Slow, subtle diagonal sweep light shine overlay */}
+                <div className="hero-image-shine" />
+                
+                {/* Technical Annotation (Engineering Style) */}
+                <div className="hero-annotation">
+                  <div className="annotation-accent" />
+                  <span className="annotation-label">SYSTEM DESIGN</span>
+                  <span className="annotation-value">ENGINEERED FOR YOUR PROPERTY</span>
                 </div>
               </div>
             </div>
@@ -195,8 +225,14 @@ const Home = () => {
         </div>
       </section>
 
+      {/* 2. Solar Savings Calculator Section */}
+      <SolarSavingsCalculator />
+
+      {/* 3. Before vs After Bill Comparison Section */}
+      <BeforeAfterBill />
+
       {/* Brand Marquee Section */}
-      <section className="brand-marquee-section">
+      <section className="brand-marquee-section mode-technical-light">
         <div className="container">
           <span className="marquee-eyebrow">TRUSTED TECHNOLOGY PARTNERS</span>
           <div className="marquee-wrapper">
@@ -217,7 +253,7 @@ const Home = () => {
       </section>
 
       {/* 2. Trust / Credibility Section */}
-      <section className="trust-section">
+      <section className="trust-section mode-editorial-light">
         <div className="container">
           <div className="trust-header-grid">
             <div>
@@ -265,7 +301,7 @@ const Home = () => {
       </section>
 
       {/* 3. Brand Introduction Section */}
-      <section className="brand-intro-section">
+      <section className="brand-intro-section mode-technical-light">
         <div className="container">
           <div className="brand-intro-grid">
             {/* Left Column: Text & CTA Link */}
@@ -302,7 +338,7 @@ const Home = () => {
       </section>
 
       {/* 4. Solutions / Products Section */}
-      <section className="solutions-section">
+      <section className="solutions-section mode-editorial-light">
         <div className="container">
           <div className="solutions-header-container">
             <span className="solutions-eyebrow">SOLAR SOLUTIONS</span>
@@ -370,7 +406,7 @@ const Home = () => {
       </section>
 
       {/* 5. Industries We Serve Section */}
-      <section className="homepage-industries-section">
+      <section className="homepage-industries-section mode-technical-light">
         <div className="container">
           <div className="industries-header-container">
             <span className="industries-eyebrow">SECTORS WE EMPOWER</span>
@@ -474,7 +510,7 @@ const Home = () => {
       </section>
 
       {/* 6. Why Choose Us Section */}
-      <section className="why-choose-section" id="why-choose-us">
+      <section className="why-choose-section mode-editorial-light" id="why-choose-us">
         <div className="container">
           <div className="why-choose-header-container">
             <span className="why-choose-eyebrow">WHY EN ENERGY</span>
@@ -530,7 +566,7 @@ const Home = () => {
       </section>
 
       {/* 7. How It Works Section */}
-      <section className="timeline-section" id="why-choose-us-process">
+      <section className="timeline-section mode-technical-light" id="why-choose-us-process">
         <div className="container">
           <div className="timeline-header-container">
             <span className="timeline-eyebrow">OUR PROCESS</span>
@@ -597,7 +633,7 @@ const Home = () => {
       </section>
 
       {/* 8. Impact / Results Section */}
-      <section className="impact-section" id="home-impact-results">
+      <section className="impact-section mode-editorial-light" id="home-impact-results">
         <div className="container">
           <div className="impact-header-container">
             <span className="impact-eyebrow">IMPACT & RESULTS</span>
@@ -623,7 +659,7 @@ const Home = () => {
       </section>
 
       {/* 9. Featured Projects Section */}
-      <section className="featured-projects-section" id="home-featured-projects">
+      <section className="featured-projects-section mode-technical-light" id="home-featured-projects">
         <div className="container">
           <div className="projects-header-container">
             <span className="projects-eyebrow">FEATURED PROJECTS</span>
@@ -649,7 +685,7 @@ const Home = () => {
       </section>
 
       {/* 10. Smart Energy / Technology Section */}
-      <section className="smart-tech-section" id="home-smart-tech">
+      <section className="smart-tech-section mode-editorial-light" id="home-smart-tech">
         <div className="container">
           <div className="tech-grid-2">
             <div>
@@ -748,7 +784,7 @@ const Home = () => {
       </section>
 
       {/* 11. Solar Assessment / Calculator Section */}
-      <section className="solar-calculator-section" id="solar-calculator">
+      <section className="solar-calculator-section mode-technical-light" id="solar-calculator">
         <div className="container">
           <div className="calculator-grid-2">
             <div>
@@ -858,7 +894,7 @@ const Home = () => {
       </section>
 
       {/* 12. Technology Partners Section */}
-      <section className="partners-section" id="home-tech-partners">
+      <section className="partners-section mode-editorial-light" id="home-tech-partners">
         <div className="container">
           <div className="partners-header-container">
             <span className="partners-eyebrow">TECHNOLOGY PARTNERS</span>
@@ -891,7 +927,7 @@ const Home = () => {
       </section>
 
       {/* 13. Client Perspectives Section */}
-      <section className="perspectives-section" id="home-client-perspectives">
+      <section className="perspectives-section mode-technical-light" id="home-client-perspectives">
         <div className="container">
           <div className="perspectives-header-container">
             <span className="perspectives-eyebrow">CLIENT PERSPECTIVES</span>
@@ -925,7 +961,7 @@ const Home = () => {
       </section>
 
       {/* 14. Insights / Blog Preview Section */}
-      <section className="insights-section" id="home-energy-insights">
+      <section className="insights-section mode-editorial-light" id="home-energy-insights">
         <div className="container">
           <div className="insights-header-container">
             <span className="insights-eyebrow">ENERGY INSIGHTS</span>
@@ -955,7 +991,7 @@ const Home = () => {
       </section>
 
       {/* 15. FAQ Section */}
-      <section>
+      <section className="faq-section mode-technical-light">
         <div className="container">
           <SectionHeader 
             title="Frequently Asked Inquiries" 
@@ -967,7 +1003,7 @@ const Home = () => {
       </section>
 
       {/* 16. Final CTA Section */}
-      <section className="final-cta-section">
+      <section className="final-cta-section mode-engineering-dark">
         {/* Decorative Grid Pattern */}
         <div className="final-cta-grid-bg">
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">

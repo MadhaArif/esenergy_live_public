@@ -12,7 +12,7 @@ import ScrollReveal from '../components/ScrollReveal';
 const Solutions = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeProductDetail, setActiveProductDetail] = useState(null);
-  const [visibleCount, setVisibleCount] = useState(16);
+  const [visibleCount, setVisibleCount] = useState(6);
   const [recentlyViewed, setRecentlyViewed] = useState(() => {
     try {
       const saved = localStorage.getItem('en_energy_recently_viewed');
@@ -61,24 +61,8 @@ const Solutions = () => {
 
   // Reset pagination when category changes
   useEffect(() => {
-    setVisibleCount(16);
+    setVisibleCount(6);
   }, [selectedCategory]);
-
-  // Infinite scroll intersection observer logic
-  useEffect(() => {
-    if (activeProductDetail) return;
-    const anchor = document.getElementById('solutions-scroll-anchor');
-    if (!anchor) return;
-
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setVisibleCount(prev => Math.min(prev + 16, filteredProducts.length));
-      }
-    }, { rootMargin: '200px' });
-
-    observer.observe(anchor);
-    return () => observer.disconnect();
-  }, [activeProductDetail, filteredProducts.length]);
 
   // Filter products based on active category tab
   const filteredProducts = selectedCategory === 'all'
@@ -180,7 +164,7 @@ const Solutions = () => {
                       className="btn-add-to-cart"
                       onClick={() => addToCart(activeProductDetail)}
                     >
-                      Add to Cart
+                      Add to Cart →
                     </button>
 
                     <a 
@@ -304,10 +288,12 @@ const Solutions = () => {
               </div>
 
               <ScrollReveal delay={100} className="solutions-page-grid">
-                {filteredProducts.slice(0, visibleCount).map((product) => (
+                {filteredProducts.slice(0, visibleCount).map((product, index) => (
                   <ProductCard
                     key={product.id}
                     product={product}
+                    className={index >= 6 ? 'fade-in-up-reveal' : ''}
+                    style={index >= 6 ? { animationDelay: `${(index % 6) * 60}ms` } : {}}
                     onSelect={(p) => {
                       navigate(`/solutions?id=${p.id}`);
                     }}
@@ -316,7 +302,14 @@ const Solutions = () => {
               </ScrollReveal>
 
               {visibleCount < filteredProducts.length && (
-                <div id="solutions-scroll-anchor" style={{ height: '10px', margin: '20px 0' }}></div>
+                <div className="load-more-container">
+                  <button 
+                    onClick={() => setVisibleCount(prev => Math.min(prev + 6, filteredProducts.length))}
+                    className="btn-load-more"
+                  >
+                    LOAD MORE PRODUCTS <span className="arrow">→</span>
+                  </button>
+                </div>
               )}
             </div>
           )}
