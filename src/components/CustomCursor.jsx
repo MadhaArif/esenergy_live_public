@@ -1,5 +1,42 @@
 import React, { useEffect, useState } from 'react';
 
+const BUILTIN_INTERACTIVE_SELECTORS = [
+  'a',
+  'button',
+  'select',
+  'option',
+  'summary',
+  'input[type="button"]',
+  'input[type="submit"]',
+  'input[type="reset"]',
+  'input[type="image"]',
+  'input[type="range"]',
+  '[role="button"]',
+  '[role="link"]',
+  '[role="slider"]',
+  '[tabindex]:not([tabindex="-1"])',
+  '.interactive',
+  '.clickable',
+  '.nav-link',
+  '.nav-link-item',
+  '.cta-btn',
+  '.btn',
+  '.whatsapp-float',
+  '.faq-trigger',
+  '.faq-item-header',
+  '.accordion-header',
+  '.slider-handle-button',
+  '.product-card',
+  '.product-card-premium',
+  '.project-card',
+  '.blog-card',
+  '.add-to-cart-btn',
+  '.view-details-link',
+  '.load-more-btn',
+  '.calculator-btn',
+  '.slider-btn'
+].join(',');
+
 const CustomCursor = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [trail, setTrail] = useState({ x: 0, y: 0 });
@@ -9,6 +46,7 @@ const CustomCursor = () => {
   const [hidden, setHidden] = useState(true);
   const [isMobile, setIsMobile] = useState(true);
   const [isOverInput, setIsOverInput] = useState(false);
+  const [pointerSelectors, setPointerSelectors] = useState([]);
 
   useEffect(() => {
     // Check if device supports hover/fine pointer
@@ -22,6 +60,43 @@ const CustomCursor = () => {
     mediaQuery.addEventListener('change', handleMatch);
     return () => mediaQuery.removeEventListener('change', handleMatch);
   }, []);
+
+  // Scan stylesheets for elements using cursor: pointer (or equivalent)
+  useEffect(() => {
+    if (isMobile) return;
+
+    const selectors = new Set();
+    try {
+      for (const sheet of document.styleSheets) {
+        try {
+          if (!sheet.cssRules) continue;
+        } catch (e) {
+          continue; // avoid security restrictions for cross-origin styles
+        }
+        for (const rule of sheet.cssRules) {
+          if (rule.style && (
+            rule.style.cursor === 'pointer' ||
+            rule.style.cursor === 'ew-resize' ||
+            rule.style.cursor === 'grab' ||
+            rule.style.cursor === 'grabbing'
+          )) {
+            const parts = rule.selectorText.split(',');
+            for (const part of parts) {
+              const trimmed = part.trim();
+              if (trimmed) {
+                // Strip pseudo-elements to avoid syntax errors in matches/closest
+                const cleaned = trimmed.split('::')[0];
+                if (cleaned) selectors.add(cleaned);
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore stylesheet-scanning errors
+    }
+    setPointerSelectors(Array.from(selectors));
+  }, [isMobile]);
 
   useEffect(() => {
     if (isMobile) return;
@@ -48,19 +123,24 @@ const CustomCursor = () => {
       const target = e.target;
       if (!target) return;
 
-      const isLink =
-        target.tagName === 'A' ||
-        target.tagName === 'BUTTON' ||
-        target.closest?.('a') ||
-        target.closest?.('button') ||
-        (target.classList && target.classList.contains('interactive'));
+      const isBuiltinInteractive = !!target.closest?.(BUILTIN_INTERACTIVE_SELECTORS);
+
+      const isPointerStyle = pointerSelectors.some((selector) => {
+        try {
+          return !!target.closest?.(selector);
+        } catch (err) {
+          return false;
+        }
+      });
+
+      const isLink = isBuiltinInteractive || isPointerStyle;
 
       const isFlowNode =
         (target.classList && target.classList.contains('flow-node')) ||
         target.closest?.('.flow-node');
 
       const isTextInput =
-        (target.tagName === 'INPUT' && !['button', 'submit', 'reset', 'checkbox', 'radio'].includes(target.type)) ||
+        (target.tagName === 'INPUT' && !['button', 'submit', 'reset', 'checkbox', 'radio', 'range'].includes(target.type)) ||
         target.tagName === 'TEXTAREA' ||
         target.contentEditable === 'true' ||
         target.closest?.('[contenteditable="true"]');
@@ -90,7 +170,7 @@ const CustomCursor = () => {
       window.removeEventListener('cursor-dragging-end', handleDragEnd);
       if (mouseFrame) cancelAnimationFrame(mouseFrame);
     };
-  }, [isMobile]);
+  }, [isMobile, pointerSelectors]);
 
   useEffect(() => {
     if (isMobile || hidden || isOverInput) return;
