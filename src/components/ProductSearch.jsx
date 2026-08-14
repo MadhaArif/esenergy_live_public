@@ -97,9 +97,9 @@ const ProductSearch = () => {
   return (
     <section className="search-section">
       <div className="container">
-        <div className="search-grid">
+        <div className="search-layout">
           
-          {/* Left Column: Input and Dropdown */}
+          {/* Top: Full-Width Search Header + Input Bar */}
           <div className="search-main" ref={searchContainerRef}>
             <div className="search-header">
               <span className="search-label">FIND YOUR SYSTEM</span>
@@ -177,31 +177,36 @@ const ProductSearch = () => {
             </div>
           </div>
 
-          {/* Right Column: Editorial Product Spotlight */}
+          {/* Bottom: Wider Horizontal Editorial Product Spotlight Showcase */}
           {spotlightProduct && (
-            <div className="spotlight-card">
-              <span className="spotlight-badge">FEATURED SPOTLIGHT</span>
-              <div className="spotlight-img-box">
-                <img
-                  src={spotlightProduct.image}
-                  alt={spotlightProduct.title}
-                  className="spotlight-img"
-                  loading="lazy"
-                />
+            <div className="spotlight-card spotlight-showcase">
+              <div className="spotlight-showcase-media">
+                <span className="spotlight-badge">FEATURED SPOTLIGHT</span>
+                <div className="spotlight-img-box">
+                  <img
+                    src={spotlightProduct.image}
+                    alt={spotlightProduct.title}
+                    className="spotlight-img"
+                    loading="lazy"
+                  />
+                </div>
               </div>
-              <span className="spotlight-brand">{spotlightProduct.brand}</span>
-              <h3 className="spotlight-title">Premium Energy Storage</h3>
-              <p className="spotlight-price">
-                {spotlightProduct.price
-                  ? `Rs. ${spotlightProduct.price.toLocaleString('en-US')}`
-                  : 'Price on request'}
-              </p>
-              <Link
-                to={`/solutions?id=${spotlightProduct.id}`}
-                className="spotlight-btn"
-              >
-                Shop Now <span className="btn-arrow">→</span>
-              </Link>
+              <div className="spotlight-showcase-content">
+                <span className="spotlight-brand">{spotlightProduct.brand}</span>
+                <h3 className="spotlight-title">Premium Energy Storage</h3>
+                <p className="spotlight-subtitle">{spotlightProduct.title}</p>
+                <p className="spotlight-price">
+                  {spotlightProduct.price
+                    ? `Rs. ${spotlightProduct.price.toLocaleString('en-US')}`
+                    : 'Price on request'}
+                </p>
+                <Link
+                  to={`/solutions?id=${spotlightProduct.id}`}
+                  className="spotlight-btn"
+                >
+                  Shop Now <span className="btn-arrow">→</span>
+                </Link>
+              </div>
             </div>
           )}
 

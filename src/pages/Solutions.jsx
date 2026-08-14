@@ -13,6 +13,7 @@ const Solutions = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeProductDetail, setActiveProductDetail] = useState(null);
   const [visibleCount, setVisibleCount] = useState(6);
+  const [searchQuery, setSearchQuery] = useState('');
   const [recentlyViewed, setRecentlyViewed] = useState(() => {
     try {
       const saved = localStorage.getItem('en_energy_recently_viewed');
@@ -28,6 +29,8 @@ const Solutions = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const productId = params.get('id');
+    const searchParam = params.get('search') || '';
+    setSearchQuery(searchParam);
     if (productId) {
       const product = productsData.find(p => p.id === productId);
       if (product) {
@@ -59,15 +62,41 @@ const Solutions = () => {
     }
   }, [activeProductDetail]);
 
-  // Reset pagination when category changes
+  // Reset pagination when category or search changes
   useEffect(() => {
     setVisibleCount(6);
-  }, [selectedCategory]);
+  }, [selectedCategory, searchQuery]);
 
-  // Filter products based on active category tab
-  const filteredProducts = selectedCategory === 'all'
-    ? productsData
-    : productsData.filter(p => p.category === selectedCategory);
+  // Filter products based on active category tab and search query
+  const filteredProducts = React.useMemo(() => {
+    let results = selectedCategory === 'all'
+      ? productsData
+      : productsData.filter(p => p.category === selectedCategory);
+
+    if (searchQuery.trim()) {
+      const cleanQuery = searchQuery.trim().toLowerCase();
+      results = results.filter((product) => {
+        const categoryObj = solutionCategories.find((c) => c.id === product.category);
+        const categoryName = categoryObj ? categoryObj.name.toLowerCase() : '';
+
+        const searchFields = [
+          product.name,
+          product.title,
+          product.brand,
+          product.category,
+          categoryName,
+          product.type,
+          product.model,
+          product.subtitle,
+          product.capacity
+        ].filter(Boolean).map(field => field.toLowerCase());
+
+        return searchFields.some((field) => field.includes(cleanQuery));
+      });
+    }
+
+    return results;
+  }, [selectedCategory, searchQuery]);
 
   // Get recently viewed products (excluding currently open)
   const getRecentlyViewedProducts = () => {
@@ -278,30 +307,70 @@ const Solutions = () => {
           {!activeProductDetail && (
             <div>
               <div className="solutions-list-header">
-                <span className="solutions-list-eyebrow">Product Portfolio</span>
+                <span className="solutions-list-eyebrow">
+                  {searchQuery.trim() ? 'Search Results' : 'Product Portfolio'}
+                </span>
                 <h2 className="solutions-list-heading">
-                  {selectedCategory === 'all' ? 'Available Configurations' : `${solutionCategories.find(c => c.id === selectedCategory)?.name}`}
+                  {searchQuery.trim()
+                    ? `Results for "${searchQuery.trim()}"`
+                    : selectedCategory === 'all'
+                    ? 'Available Configurations'
+                    : `${solutionCategories.find(c => c.id === selectedCategory)?.name}`
+                  }
                 </h2>
                 <p className="solutions-list-desc">
-                  Select a technology profile from our verified inventory below to load its full engineering specifications.
+                  {searchQuery.trim()
+                    ? `${filteredProducts.length} match${filteredProducts.length !== 1 ? 'es' : ''} found for "${searchQuery.trim()}". ${filteredProducts.length > 0 ? 'Select a product below to view its full engineering specifications.' : 'Try adjusting your search terms or browse all products.'}`
+                    : 'Select a technology profile from our verified inventory below to load its full engineering specifications.'
+                  }
                 </p>
+                {searchQuery.trim() && (
+                  <button
+                    onClick={() => {
+                      navigate('/solutions');
+                    }}
+                    className="btn-clear-search"
+                  >
+                    <X size={14} />
+                    Clear Search
+                  </button>
+                )}
               </div>
 
-              <ScrollReveal delay={100} className="solutions-page-grid">
-                {filteredProducts.slice(0, visibleCount).map((product, index) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    className={index >= 6 ? 'fade-in-up-reveal' : ''}
-                    style={index >= 6 ? { animationDelay: `${(index % 6) * 60}ms` } : {}}
-                    onSelect={(p) => {
-                      navigate(`/solutions?id=${p.id}`);
-                    }}
-                  />
-                ))}
-              </ScrollReveal>
+              {filteredProducts.length > 0 ? (
+                <ScrollReveal delay={100} className="solutions-page-grid">
+                  {filteredProducts.slice(0, visibleCount).map((product, index) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      className={index >= 6 ? 'fade-in-up-reveal' : ''}
+                      style={index >= 6 ? { animationDelay: `${(index % 6) * 60}ms` } : {}}
+                      onSelect={(p) => {
+                        navigate(`/solutions?id=${p.id}`);
+                      }}
+                    />
+                  ))}
+                </ScrollReveal>
+              ) : (
+                <div className="solutions-no-results">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '16px' }} aria-hidden="true">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 8px 0' }}>No products match your search</h3>
+                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: '0 0 20px 0', maxWidth: '400px' }}>
+                    Try different keywords or browse our complete product catalog.
+                  </p>
+                  <button
+                    onClick={() => navigate('/solutions')}
+                    className="detail-close-btn-premium"
+                  >
+                    Browse All Products
+                  </button>
+                </div>
+              )}
 
-              {visibleCount < filteredProducts.length && (
+              {filteredProducts.length > 0 && visibleCount < filteredProducts.length && (
                 <div className="load-more-container">
                   <button 
                     onClick={() => setVisibleCount(prev => Math.min(prev + 6, filteredProducts.length))}
