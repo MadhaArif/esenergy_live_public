@@ -766,14 +766,21 @@ button {
     max-width: 480px;
   }
   .hero-cta-group {
+    flex-direction: column;
     justify-content: center;
-    gap: 16px;
+    align-items: stretch;
+    gap: 12px;
     width: 100%;
     max-width: 460px;
   }
   .btn-hero-primary, .btn-hero-secondary {
-    flex: 1;
-    width: auto !important;
+    flex: 0 0 auto;
+    width: 100% !important;
+    height: 52px !important;
+    padding: 0 24px !important;
+    font-size: 14px !important;
+    justify-content: center !important;
+    white-space: nowrap;
   }
   .hero-trust-strip {
     justify-content: center;
@@ -810,11 +817,20 @@ button {
     flex-direction: column;
     width: 100%;
     gap: 12px;
+    max-width: 100%;
   }
   .btn-hero-primary, .btn-hero-secondary {
     width: 100% !important;
-    height: 52px;
-    padding: 0 !important;
+    height: 52px !important;
+    padding: 0 20px !important;
+    font-size: 14px !important;
+    justify-content: center !important;
+    white-space: normal;
+    text-align: center;
+    flex-direction: row;
+  }
+  .btn-arrow {
+    flex-shrink: 0;
   }
   .hero-trust-strip {
     gap: 6px 12px;
@@ -848,6 +864,11 @@ button {
   .hero-description {
     font-size: 14.5px;
   }
+  .btn-hero-primary, .btn-hero-secondary {
+    height: 50px !important;
+    font-size: 13.5px !important;
+    padding: 0 16px !important;
+  }
   .hero-trust-strip {
     gap: 4px 10px;
   }
@@ -863,6 +884,11 @@ button {
   }
   .hero-description {
     font-size: 14px;
+  }
+  .btn-hero-primary, .btn-hero-secondary {
+    height: 48px !important;
+    font-size: 13px !important;
+    padding: 0 14px !important;
   }
   .trust-strip-item {
     font-size: 8px;
@@ -5833,20 +5859,13 @@ button {
 
 /* 1. Custom Desktop Cursor */
 @media (pointer: fine) {
-  html,
-  body,
-  * {
+  body.custom-cursor-active,
+  body.custom-cursor-active * {
     cursor: none !important;
   }
-  input[type="text"],
-  input[type="email"],
-  input[type="number"],
-  input[type="search"],
-  input[type="tel"],
-  input[type="url"],
-  input[type="password"],
-  textarea,
-  [contenteditable="true"] {
+  body.custom-cursor-active input,
+  body.custom-cursor-active textarea,
+  body.custom-cursor-active [contenteditable="true"] {
     cursor: text !important;
   }
 }
@@ -5934,6 +5953,140 @@ button {
 .scroll-reveal.revealed > *:nth-child(4) { transition-delay: 180ms; }
 .scroll-reveal.revealed > *:nth-child(5) { transition-delay: 240ms; }
 .scroll-reveal.revealed > *:nth-child(6) { transition-delay: 300ms; }
+
+/* =========================================================
+   SCROLL REVEAL VARIANTS — Premium, Restrained, Transform-Only
+   ========================================================= */
+
+/* --- Eyebrow / Kicker --- */
+.scroll-reveal.sr-eyebrow {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 480ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+  display: inline-block;
+}
+.scroll-reveal.sr-eyebrow.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Word-by-word Heading Reveal --- */
+.scroll-reveal.sr-heading-wrap {
+  display: block;
+}
+.sr-word-wrapper {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  margin-right: 0.25em;
+}
+.sr-word-wrapper:last-child {
+  margin-right: 0;
+}
+.sr-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.scroll-reveal.sr-heading-wrap.revealed .sr-word {
+  opacity: 1;
+  transform: translateY(0);
+}
+.scroll-reveal.sr-heading {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 500ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.scroll-reveal.sr-heading.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Paragraph / Body Text --- */
+.scroll-reveal.sr-paragraph {
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 500ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.scroll-reveal.sr-paragraph.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Card / Panel --- */
+.scroll-reveal.sr-card {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 500ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.scroll-reveal.sr-card.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Image / Media wrapper --- */
+.scroll-reveal.sr-image {
+  opacity: 0;
+  transform: translateY(8px) scale(0.985);
+  transition:
+    opacity 550ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 550ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.scroll-reveal.sr-image.revealed {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* --- Button / CTA --- */
+.scroll-reveal.sr-button {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 450ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 450ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+  display: inline-block;
+}
+.scroll-reveal.sr-button.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Reduced Motion: Show everything immediately --- */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal.sr-eyebrow,
+  .scroll-reveal.sr-heading,
+  .scroll-reveal.sr-paragraph,
+  .scroll-reveal.sr-card,
+  .scroll-reveal.sr-image,
+  .scroll-reveal.sr-button {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .sr-word {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
 
 /* Global Card Lift utility */
 .card-lift {
@@ -8356,26 +8509,27 @@ button {
 
 /* Button/link hover (already has class — refine dimensions) */
 .custom-cursor-dot.hovered {
-  width: 8px;
-  height: 8px;
-  background-color: #0a0f1d;
+  opacity: 0;
 }
 
 .custom-cursor-trail.hovered {
-  width: 42px;
-  height: 42px;
-  border-color: rgba(10, 15, 29, 0.18);
-  background-color: rgba(10, 15, 29, 0.025);
+  opacity: 0;
 }
 
 .custom-cursor-pointer-svg {
   position: fixed;
   pointer-events: none;
   z-index: 10000;
-  transform: none;
+  transform: scale(0.8);
+  opacity: 0;
   transition: transform 160ms var(--ease-premium),
               opacity 160ms ease;
   will-change: transform;
+}
+
+.custom-cursor-pointer-svg.hovered {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .custom-cursor-pointer-svg path {

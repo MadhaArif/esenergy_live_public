@@ -1,42 +1,5 @@
 import React, { useEffect, useState } from 'react';
 
-const BUILTIN_INTERACTIVE_SELECTORS = [
-  'a',
-  'button',
-  'select',
-  'option',
-  'summary',
-  'input[type="button"]',
-  'input[type="submit"]',
-  'input[type="reset"]',
-  'input[type="image"]',
-  'input[type="range"]',
-  '[role="button"]',
-  '[role="link"]',
-  '[role="slider"]',
-  '[tabindex]:not([tabindex="-1"])',
-  '.interactive',
-  '.clickable',
-  '.nav-link',
-  '.nav-link-item',
-  '.cta-btn',
-  '.btn',
-  '.whatsapp-float',
-  '.faq-trigger',
-  '.faq-item-header',
-  '.accordion-header',
-  '.slider-handle-button',
-  '.product-card',
-  '.product-card-premium',
-  '.project-card',
-  '.blog-card',
-  '.add-to-cart-btn',
-  '.view-details-link',
-  '.load-more-btn',
-  '.calculator-btn',
-  '.slider-btn'
-].join(',');
-
 const CustomCursor = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [trail, setTrail] = useState({ x: 0, y: 0 });
@@ -46,10 +9,9 @@ const CustomCursor = () => {
   const [hidden, setHidden] = useState(true);
   const [isMobile, setIsMobile] = useState(true);
   const [isOverInput, setIsOverInput] = useState(false);
-  const [pointerSelectors, setPointerSelectors] = useState([]);
 
+  // Check if device supports hover/fine pointer
   useEffect(() => {
-    // Check if device supports hover/fine pointer
     const mediaQuery = window.matchMedia('(pointer: fine)');
     setIsMobile(!mediaQuery.matches);
 
@@ -61,47 +23,38 @@ const CustomCursor = () => {
     return () => mediaQuery.removeEventListener('change', handleMatch);
   }, []);
 
-  // Scan stylesheets for elements using cursor: pointer (or equivalent)
+  // Manage active body class to selectively hide native browser cursor
   useEffect(() => {
-    if (isMobile) return;
-
-    const selectors = new Set();
-    try {
-      for (const sheet of document.styleSheets) {
-        try {
-          if (!sheet.cssRules) continue;
-        } catch (e) {
-          continue; // avoid security restrictions for cross-origin styles
-        }
-        for (const rule of sheet.cssRules) {
-          if (rule.style && (
-            rule.style.cursor === 'pointer' ||
-            rule.style.cursor === 'ew-resize' ||
-            rule.style.cursor === 'grab' ||
-            rule.style.cursor === 'grabbing'
-          )) {
-            const parts = rule.selectorText.split(',');
-            for (const part of parts) {
-              const trimmed = part.trim();
-              if (trimmed) {
-                // Strip pseudo-elements to avoid syntax errors in matches/closest
-                const cleaned = trimmed.split('::')[0];
-                if (cleaned) selectors.add(cleaned);
-              }
-            }
-          }
-        }
-      }
-    } catch (e) {
-      // Ignore stylesheet-scanning errors
+    if (isMobile || hidden || isOverInput) {
+      document.body.classList.remove('custom-cursor-active');
+    } else {
+      document.body.classList.add('custom-cursor-active');
     }
-    setPointerSelectors(Array.from(selectors));
-  }, [isMobile]);
+    return () => {
+      document.body.classList.remove('custom-cursor-active');
+    };
+  }, [isMobile, hidden, isOverInput]);
+
+  // Development-only transition logs
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      let resolvedState = 'normal';
+      if (dragging) resolvedState = 'dragging';
+      else if (flowNode) resolvedState = 'flow-node';
+      else if (hovered) resolvedState = 'hovered';
+      else if (isOverInput) resolvedState = 'text-input';
+
+      console.log(`[CustomCursor] State changed to: ${resolvedState}`);
+    }
+  }, [dragging, flowNode, hovered, isOverInput]);
 
   useEffect(() => {
     if (isMobile) return;
 
     let mouseFrame;
+    let lastTarget = null;
+
+    // The rAF loop should ONLY update cursor position
     const handleMouseMove = (e) => {
       if (mouseFrame) cancelAnimationFrame(mouseFrame);
       mouseFrame = requestAnimationFrame(() => {
@@ -112,42 +65,65 @@ const CustomCursor = () => {
 
     const handleMouseLeave = () => {
       setHidden(true);
+      lastTarget = null;
     };
 
     const handleMouseEnter = () => {
       setHidden(false);
     };
 
-    // Listen for hover states on links/buttons and inputs
+    // Event delegation on document to catch element entries
     const handleMouseOver = (e) => {
       const target = e.target;
-      if (!target) return;
+      if (!target || target === lastTarget) return;
+      lastTarget = target;
 
-      const isBuiltinInteractive = !!target.closest?.(BUILTIN_INTERACTIVE_SELECTORS);
-
-      const isPointerStyle = pointerSelectors.some((selector) => {
-        try {
-          return !!target.closest?.(selector);
-        } catch (err) {
-          return false;
-        }
-      });
-
-      const isLink = isBuiltinInteractive || isPointerStyle;
-
-      const isFlowNode =
-        (target.classList && target.classList.contains('flow-node')) ||
-        target.closest?.('.flow-node');
-
+      // 1. Text selection inputs/textareas/editables
       const isTextInput =
         (target.tagName === 'INPUT' && !['button', 'submit', 'reset', 'checkbox', 'radio', 'range'].includes(target.type)) ||
         target.tagName === 'TEXTAREA' ||
         target.contentEditable === 'true' ||
-        target.closest?.('[contenteditable="true"]');
+        !!target.closest?.('[contenteditable="true"]');
 
-      setHovered(!!isLink);
-      setFlowNode(!!isFlowNode);
-      setIsOverInput(!!isTextInput);
+      if (isTextInput) {
+        setHovered(false);
+        setFlowNode(false);
+        setIsOverInput(true);
+        return;
+      }
+
+      // 2. Flow-node interactive nodes
+      const isFlowNode =
+        (target.classList && target.classList.contains('flow-node')) ||
+        !!target.closest?.('.flow-node');
+
+      // 3. Explicit interactive elements
+      const interactiveTarget = target.closest?.(
+        'a, button, [role="button"], [tabindex]:not([tabindex="-1"]), ' +
+        'input[type="button"], input[type="submit"], input[type="reset"], input[type="image"], input[type="range"], ' +
+        '[role="link"], [role="slider"], .interactive, .clickable, .nav-link, .nav-link-item, .cta-btn, .btn, ' +
+        '.whatsapp-float, .faq-trigger, .faq-item-header, .accordion-header, .slider-handle-button, ' +
+        '.product-card, .product-card-premium, .project-card, .blog-card, .add-to-cart-btn, ' +
+        '.view-details-link, .load-more-btn, .calculator-btn, .slider-btn'
+      );
+
+      let isInteractive = !!interactiveTarget;
+
+      // 4. Computed cursor fallback: run only once per new DOM target
+      if (!isInteractive) {
+        try {
+          const computedCursor = window.getComputedStyle(target).cursor;
+          if (['pointer', 'ew-resize', 'grab', 'grabbing'].includes(computedCursor)) {
+            isInteractive = true;
+          }
+        } catch (err) {
+          // Ignore potential detached DOM node or cross-origin errors
+        }
+      }
+
+      setHovered(isInteractive);
+      setFlowNode(isFlowNode);
+      setIsOverInput(false);
     };
 
     // Global signals from draggable components
@@ -157,7 +133,7 @@ const CustomCursor = () => {
     window.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseleave', handleMouseLeave);
     document.addEventListener('mouseenter', handleMouseEnter);
-    window.addEventListener('mouseover', handleMouseOver);
+    document.addEventListener('mouseover', handleMouseOver);
     window.addEventListener('cursor-dragging-start', handleDragStart);
     window.addEventListener('cursor-dragging-end', handleDragEnd);
 
@@ -165,13 +141,14 @@ const CustomCursor = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseleave', handleMouseLeave);
       document.removeEventListener('mouseenter', handleMouseEnter);
-      window.removeEventListener('mouseover', handleMouseOver);
+      document.removeEventListener('mouseover', handleMouseOver);
       window.removeEventListener('cursor-dragging-start', handleDragStart);
       window.removeEventListener('cursor-dragging-end', handleDragEnd);
       if (mouseFrame) cancelAnimationFrame(mouseFrame);
     };
-  }, [isMobile, pointerSelectors]);
+  }, [isMobile]);
 
+  // Interpolated smooth lag trail effect
   useEffect(() => {
     if (isMobile || hidden || isOverInput) return;
 
@@ -196,6 +173,7 @@ const CustomCursor = () => {
 
   if (isMobile || hidden || isOverInput) return null;
 
+  // Resolve state classes
   const dotClasses = [
     'custom-cursor-dot',
     dragging ? 'dragging' : '',

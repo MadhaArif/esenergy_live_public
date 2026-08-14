@@ -1,10 +1,11 @@
 import React from 'react';
+import { RevealHeading, RevealEyebrow, RevealParagraph } from './ScrollReveal';
 
 const SectionHeader = ({
   title,
   subtitle,
   description,
-  align = 'center', // 'center' | 'left'
+  align = 'center',
   className = '',
   ...props
 }) => {
@@ -44,9 +45,19 @@ const SectionHeader = ({
 
   return (
     <div style={containerStyle} className={`section-header ${className}`} {...props}>
-      {subtitle && <span style={badgeStyle}>{subtitle}</span>}
-      <h2 style={titleStyle}>{title}</h2>
-      {description && <p style={descStyle}>{description}</p>}
+      {subtitle && (
+        <RevealEyebrow customStyles={badgeStyle} delay={0}>
+          {subtitle}
+        </RevealEyebrow>
+      )}
+      <RevealHeading delay={60} customStyles={titleStyle}>
+        {title}
+      </RevealHeading>
+      {description && (
+        <RevealParagraph delay={140} customStyles={descStyle}>
+          {description}
+        </RevealParagraph>
+      )}
     </div>
   );
 };
