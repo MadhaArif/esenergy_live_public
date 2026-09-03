@@ -1,46 +1,28 @@
+'use client';
+
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 
-const Breadcrumbs = ({ paths = [] }) => {
-  const containerStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    fontSize: '13px',
-    color: 'var(--text-secondary)',
-    marginBottom: '24px',
-    flexWrap: 'wrap',
-  };
-
-  const linkStyle = {
-    color: 'var(--text-secondary)',
-    fontWeight: '500',
-    transition: 'var(--transition-smooth)',
-  };
-
-  const activeStyle = {
-    color: 'var(--text-muted)',
-    fontWeight: '400',
-  };
+const Breadcrumbs = ({ paths = [], variant = 'default' }) => {
+  const isLight = variant === 'light';
 
   return (
-    <nav aria-label="Breadcrumb" style={containerStyle}>
-      <Link to="/" style={linkStyle}>
-        Home
-      </Link>
-      
+    <nav
+      aria-label="Breadcrumb"
+      className={`es-breadcrumbs ${isLight ? 'es-breadcrumbs-light' : ''}`}
+    >
+      <Link href="/">Home</Link>
+
       {paths.map((path, index) => {
         const isLast = index === paths.length - 1;
         return (
-          <React.Fragment key={index}>
-            <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
+          <React.Fragment key={path.url || path.label}>
+            <ChevronRight size={14} aria-hidden="true" className="es-breadcrumbs-sep" />
             {isLast ? (
-              <span style={activeStyle}>{path.label}</span>
+              <span aria-current="page">{path.label}</span>
             ) : (
-              <Link to={path.url} style={linkStyle}>
-                {path.label}
-              </Link>
+              <Link href={path.url}>{path.label}</Link>
             )}
           </React.Fragment>
         );

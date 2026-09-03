@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { getOptimizedImageUrl } from '../data';
@@ -69,7 +71,7 @@ const ProductCard = ({ product, onSelect, className = '', style = {} }) => {
         </div>
         
         <div className="product-card-cta">
-          <span className="cta-text">View Product</span>
+          <span className="cta-text">View Details</span>
           <ArrowRight className="cta-arrow" size={15} />
         </div>
       </div>

@@ -1,4 +1,6 @@
-// EN Energy - Skeleton Mock Data (Flexible and Scalable Structure)
+// ES Energy - Skeleton Mock Data (Flexible and Scalable Structure)
+
+import { contactConfig as sharedContactConfig, getWhatsAppNumber } from './lib/contact';
 
 export const statsData = [
   { id: "stat-1", label: "Tons of CO2 Saved", value: "Assessed per project" },
@@ -9,7 +11,7 @@ export const statsData = [
 
 export const brandIntroData = {
   title: "Empowering Pakistan with Clean, Reliable Energy",
-  subtitle: "EN Energy is committed to delivering state-of-the-art solar energy solutions customized for residential, commercial, and industrial scales.",
+  subtitle: "ES Energy is committed to delivering state-of-the-art solar energy solutions customized for residential, commercial, and industrial scales.",
   description: "Our engineered solar energy frameworks ensure optimal performance, grid reliability, and maximum savings. We utilize advanced tier-1 technologies to provide high-yield sustainable energy systems designed to withstand local environmental conditions.",
   ctaText: "Discover Our Vision",
 };
@@ -6250,7 +6252,7 @@ export const faqsData = [
   {
     id: "faq-selection",
     serial: "10",
-    question: "How does EN Energy determine the right system for a project?",
+    question: "How does ES Energy determine the right system for a project?",
     answer: "Our engineering team conducts a feasibility audit including structural roof inspection, shading analysis, utility bill review, and load logging. We then create a system design selecting compatible inverters and Tier-1 components to match the specific energy demands of your site."
   }
 ];
@@ -6329,8 +6331,9 @@ export const solarCalculatorConfig = {
 };
 
 
-// CONFIGURATION: Replace this placeholder with the company's active WhatsApp Business number before production deployment.
-export const WHATSAPP_NUMBER = "YOUR_WHATSAPP_NUMBER";
+
+// WhatsApp number from NEXT_PUBLIC_WHATSAPP_NUMBER in .env.local
+export const WHATSAPP_NUMBER = getWhatsAppNumber() || 'YOUR_WHATSAPP_NUMBER';
 
 /**
  * Generates a WhatsApp API link for a single product order inquiry.
@@ -6340,7 +6343,7 @@ export const getWhatsAppProductUrl = (product, quantity = 1) => {
     ? `Rs. ${product.price.toLocaleString('en-US')}` 
     : 'Price on request';
     
-  const text = `Hello EN Energy,
+  const text = `Hello ES Energy,
 
 I am interested in ordering:
 
@@ -6377,7 +6380,7 @@ export const getWhatsAppCartUrl = (cartItems, totalItems, totalPrice) => {
     ? `Rs. ${totalPrice.toLocaleString('en-US')} (excluding items with price on request)` 
     : `Rs. ${totalPrice.toLocaleString('en-US')}`;
 
-  const text = `Hello EN Energy,
+  const text = `Hello ES Energy,
 
 I would like to place an inquiry/order for:
 
@@ -6391,12 +6394,7 @@ Please confirm availability and next steps.`;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 };
 
-export const contactConfig = {
-  phoneNumber: "", // Left blank as no verified phone number exists
-  officeAddress: "", // Left blank as no verified office address exists
-  approvedEmail: "info@enenergy.com.pk",
-  operatingHours: "Operating hours available on request"
-};
+export const contactConfig = sharedContactConfig;
 
 export const getOptimizedImageUrl = (url, width = 400) => {
   if (!url) return '';

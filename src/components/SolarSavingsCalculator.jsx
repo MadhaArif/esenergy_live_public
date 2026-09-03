@@ -1,17 +1,39 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import ScrollReveal from './ScrollReveal';
-import { WHATSAPP_NUMBER } from '../data';
+'use client';
 
-const MIN_BILL = 10000;
-const MAX_BILL = 300000;
-const STEP_BILL = 5000;
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { Calculator, SlidersHorizontal, Keyboard, Home, Building2, Factory } from 'lucide-react';
+import ScrollReveal from './ScrollReveal';
+import { isWhatsAppConfigured, getWhatsAppUrl } from '@/lib/contact';
+
+const MIN_BILL = 5000;
+const MAX_BILL = 500000;
+const STEP_BILL = 1000;
 const DEFAULT_BILL = 45000;
 
-const SAVINGS_RATIO = 0.7;
+const SAVINGS_BY_SECTOR = {
+  residential: 0.7,
+  commercial: 0.65,
+  industrial: 0.6,
+};
+
+const PRESETS = [
+  { label: 'PKR 15,000', value: 15000 },
+  { label: 'PKR 25,000', value: 25000 },
+  { label: 'PKR 45,000', value: 45000 },
+  { label: 'PKR 75,000', value: 75000 },
+  { label: 'PKR 1,00,000', value: 100000 },
+  { label: 'PKR 2,00,000', value: 200000 },
+];
+
+const SECTORS = [
+  { id: 'residential', label: 'Home', icon: Home, hint: 'House / apartment' },
+  { id: 'commercial', label: 'Business', icon: Building2, hint: 'Office / shop' },
+  { id: 'industrial', label: 'Factory', icon: Factory, hint: 'Plant / warehouse' },
+];
 
 const CAPACITY_TIERS = [
-  { label: '3 kW', minBill: 10000, maxBill: 25000, systemKW: 3, costPerKW: 135000 },
+  { label: '3 kW', minBill: 5000, maxBill: 25000, systemKW: 3, costPerKW: 135000 },
   { label: '5 kW', minBill: 25000, maxBill: 40000, systemKW: 5, costPerKW: 130000 },
   { label: '6.2 kW', minBill: 40000, maxBill: 55000, systemKW: 6.2, costPerKW: 128000 },
   { label: '8 kW', minBill: 55000, maxBill: 75000, systemKW: 8, costPerKW: 125000 },
@@ -23,215 +45,354 @@ const CAPACITY_TIERS = [
 const getTierForBill = (bill) => {
   for (let i = 0; i < CAPACITY_TIERS.length; i++) {
     const tier = CAPACITY_TIERS[i];
-    if (i === 0) {
-      if (bill >= tier.minBill && bill < tier.maxBill) return tier;
-    } else if (i === CAPACITY_TIERS.length - 1) {
+    if (i === CAPACITY_TIERS.length - 1) {
       if (bill >= tier.minBill) return tier;
-    } else {
-      if (bill >= tier.minBill && bill < tier.maxBill) return tier;
+    } else if (bill >= tier.minBill && bill < tier.maxBill) {
+      return tier;
     }
   }
   return CAPACITY_TIERS[2];
 };
 
-const formatPKR = (num) => {
-  return 'PKR ' + Math.round(num).toLocaleString('en-PK');
-};
+const formatPKR = (num) => `PKR ${Math.round(num).toLocaleString('en-PK')}`;
+const formatNumber = (num) => Math.round(num).toLocaleString('en-PK');
 
-const SolarSavingsCalculator = () => {
-  const navigate = useNavigate();
+const SolarSavingsCalculator = ({ standalone = false }) => {
+  const router = useRouter();
+  const inputRef = useRef(null);
   const [bill, setBill] = useState(DEFAULT_BILL);
-  const [inputValue, setInputValue] = useState(String(DEFAULT_BILL));
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [draft, setDraft] = useState(String(DEFAULT_BILL));
+  const [isFocused, setIsFocused] = useState(false);
+  const [inputMode, setInputMode] = useState('type'); // type | slider
+  const [sector, setSector] = useState('residential');
   const [isSliding, setIsSliding] = useState(false);
   const [tickActive, setTickActive] = useState(false);
-  const prevValuesRef = useRef({});
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const prevTierRef = useRef('');
   const tickTimerRef = useRef(null);
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mediaQuery.matches);
-    const handleChange = (e) => setPrefersReducedMotion(e.matches);
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
-
   const clampBill = (val) => {
-    if (isNaN(val) || val < MIN_BILL) return MIN_BILL;
-    if (val > MAX_BILL) return MAX_BILL;
-    return val;
+    if (isNaN(val)) return MIN_BILL;
+    return Math.min(MAX_BILL, Math.max(MIN_BILL, val));
   };
 
-  const snapToStep = (val) => {
-    const steps = Math.round((val - MIN_BILL) / STEP_BILL);
-    return MIN_BILL + steps * STEP_BILL;
+  const applyBill = (val, { snap = false } = {}) => {
+    let next = clampBill(val);
+    if (snap) {
+      const steps = Math.round((next - MIN_BILL) / STEP_BILL);
+      next = MIN_BILL + steps * STEP_BILL;
+    }
+    setBill(next);
+    setDraft(String(next));
+    setError('');
+    return next;
+  };
+
+  const handleDraftChange = (e) => {
+    const digits = e.target.value.replace(/[^\d]/g, '');
+    setDraft(digits);
+
+    if (digits === '') {
+      setError('Enter your monthly bill amount');
+      return;
+    }
+
+    const num = Number(digits);
+    if (num < MIN_BILL) {
+      setError(`Minimum bill is ${formatPKR(MIN_BILL)}`);
+      setBill(num);
+      return;
+    }
+    if (num > MAX_BILL) {
+      setError(`Maximum for this tool is ${formatPKR(MAX_BILL)}`);
+      setBill(MAX_BILL);
+      return;
+    }
+
+    setError('');
+    setBill(num);
+  };
+
+  const handleDraftBlur = () => {
+    setIsFocused(false);
+    if (draft === '') {
+      applyBill(DEFAULT_BILL);
+      return;
+    }
+    applyBill(Number(draft));
   };
 
   const handleSliderChange = (e) => {
-    const val = Number(e.target.value);
-    const snapped = snapToStep(val);
-    setBill(snapped);
-    setInputValue(String(snapped));
-  };
-
-  const handleSliderMouseDown = () => setIsSliding(true);
-  const handleSliderMouseUp = () => setIsSliding(false);
-
-  const handleInputChange = (e) => {
-    const raw = e.target.value;
-    if (raw === '') {
-      setInputValue('');
-      return;
-    }
-    const digitsOnly = raw.replace(/[^\d]/g, '');
-    if (digitsOnly === '') {
-      setInputValue('');
-      return;
-    }
-    const num = Number(digitsOnly);
-    setInputValue(digitsOnly);
-    const clamped = clampBill(num);
-    setBill(clamped);
-  };
-
-  const handleInputBlur = () => {
-    const num = inputValue === '' ? MIN_BILL : Number(inputValue);
-    const clamped = clampBill(num);
-    const snapped = snapToStep(clamped);
-    setBill(snapped);
-    setInputValue(String(snapped));
+    applyBill(Number(e.target.value), { snap: true });
   };
 
   const estimate = useMemo(() => {
-    const tier = getTierForBill(bill);
-    const monthlySavings = Math.round(bill * SAVINGS_RATIO);
-    const annualSavings = Math.round(monthlySavings * 12);
+    const safeBill = clampBill(bill < MIN_BILL ? MIN_BILL : bill);
+    const tier = getTierForBill(safeBill);
+    const ratio = SAVINGS_BY_SECTOR[sector] ?? 0.7;
+    const monthlySavings = Math.round(safeBill * ratio);
+    const annualSavings = monthlySavings * 12;
     const systemCost = tier.systemKW * tier.costPerKW;
     const paybackYears = annualSavings > 0 ? systemCost / annualSavings : 0;
+    const afterBill = Math.max(0, safeBill - monthlySavings);
+
     return {
       systemKW: tier.systemKW,
       systemLabel: tier.label,
       monthlySavings,
       annualSavings,
       paybackYears,
+      afterBill,
+      ratio,
       tierIndex: CAPACITY_TIERS.indexOf(tier),
+      displayBill: safeBill,
     };
-  }, [bill]);
-
-  const displayMonthly = prevValuesRef.current.monthlySavings ?? estimate.monthlySavings;
-  const displayAnnual = prevValuesRef.current.annualSavings ?? estimate.annualSavings;
-  const displayPayback = prevValuesRef.current.paybackYears ?? estimate.paybackYears;
+  }, [bill, sector]);
 
   useEffect(() => {
-    if (prefersReducedMotion) {
-      prevValuesRef.current = {
-        monthlySavings: estimate.monthlySavings,
-        annualSavings: estimate.annualSavings,
-        paybackYears: estimate.paybackYears,
-      };
-      return;
-    }
-    const prev = prevValuesRef.current;
-    const changed =
-      prev.monthlySavings !== estimate.monthlySavings ||
-      prev.annualSavings !== estimate.annualSavings ||
-      prev.paybackYears !== estimate.paybackYears ||
-      prev.systemLabel !== estimate.systemLabel;
-    if (changed) {
+    if (prevTierRef.current && prevTierRef.current !== estimate.systemLabel) {
       if (tickTimerRef.current) clearTimeout(tickTimerRef.current);
       setTickActive(true);
-      tickTimerRef.current = setTimeout(() => setTickActive(false), 220);
+      tickTimerRef.current = setTimeout(() => setTickActive(false), 280);
     }
-    prevValuesRef.current = {
-      monthlySavings: estimate.monthlySavings,
-      annualSavings: estimate.annualSavings,
-      paybackYears: estimate.paybackYears,
-      systemLabel: estimate.systemLabel,
-    };
-  }, [estimate, prefersReducedMotion]);
+    prevTierRef.current = estimate.systemLabel;
+  }, [estimate.systemLabel]);
 
   useEffect(() => {
-    if (isSliding) {
-      window.dispatchEvent(new CustomEvent('cursor-dragging-start'));
-    } else {
-      window.dispatchEvent(new CustomEvent('cursor-dragging-end'));
-    }
-  }, [isSliding]);
+    if (typeof window === 'undefined') return;
+    const detail = {
+      bill: estimate.displayBill,
+      ratio: estimate.ratio,
+      systemLabel: estimate.systemLabel,
+      monthlySavings: estimate.monthlySavings,
+      afterBill: estimate.afterBill,
+      sector,
+    };
+    window.__esCalcEstimate = detail;
+    window.dispatchEvent(new CustomEvent('es-calc-estimate', { detail }));
+  }, [estimate, sector]);
 
   useEffect(() => {
     return () => {
       if (tickTimerRef.current) clearTimeout(tickTimerRef.current);
-      window.dispatchEvent(new CustomEvent('cursor-dragging-end'));
     };
   }, []);
 
-  const sliderProgress = ((bill - MIN_BILL) / (MAX_BILL - MIN_BILL)) * 100;
+  const sliderProgress =
+    ((Math.min(MAX_BILL, Math.max(MIN_BILL, bill)) - MIN_BILL) / (MAX_BILL - MIN_BILL)) * 100;
 
-  const handlePrimaryCTA = () => {
-    const systemParam = estimate.systemKW + 'kW';
-    navigate(`/contact?system=${encodeURIComponent(systemParam)}&bill=${bill}`);
+  const displayValue = isFocused
+    ? draft
+    : draft === ''
+      ? ''
+      : formatNumber(Number(draft) || 0);
+
+  const handlePrimaryCTA = async () => {
+    const finalBill = applyBill(Number(draft || bill));
+    setSubmitting(true);
+    try {
+      await fetch('/api/quotes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          monthlyBill: finalBill,
+          systemLabel: estimate.systemLabel,
+          systemKW: estimate.systemKW,
+          estimatedSavings: estimate.monthlySavings,
+          annualSavings: estimate.annualSavings,
+          paybackYears: estimate.paybackYears,
+          sector,
+          source: 'calculator',
+        }),
+      });
+    } catch {
+      // best-effort
+    } finally {
+      setSubmitting(false);
+    }
+
+    router.push(
+      `/contact?system=${encodeURIComponent(`${estimate.systemKW}kW`)}&bill=${finalBill}&sector=${sector}#contact-form`
+    );
   };
 
-  const hasValidWhatsApp = WHATSAPP_NUMBER &&
-    WHATSAPP_NUMBER !== 'YOUR_WHATSAPP_NUMBER' &&
-    WHATSAPP_NUMBER.trim().length > 0;
+  const hasValidWhatsApp = isWhatsAppConfigured();
 
   const handleWhatsApp = () => {
     if (!hasValidWhatsApp) return;
-    const message = `Hi EN Energy, I'd like to discuss a ${estimate.systemLabel} solar system based on my monthly electricity bill of ${formatPKR(bill)}. Estimated monthly savings: ${formatPKR(estimate.monthlySavings)}.`;
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+    const message = `Hi ES Energy, I'd like a ${estimate.systemLabel} solar quote. My monthly bill is about ${formatPKR(estimate.displayBill)} (${sector}). Estimated monthly savings: ${formatPKR(estimate.monthlySavings)}.`;
+    const url = getWhatsAppUrl(message);
+    if (url) window.open(url, '_blank');
+  };
+
+  const focusTypeMode = () => {
+    setInputMode('type');
+    setTimeout(() => inputRef.current?.focus(), 50);
   };
 
   return (
-    <section className="savings-calculator-section mode-engineering-dark" aria-labelledby="savings-calc-heading">
+    <section
+      id="solar-calculator"
+      className={`savings-calculator-section mode-engineering-dark es-calc-tool${standalone ? ' savings-calculator-standalone' : ''}`}
+      aria-labelledby="savings-calc-heading"
+    >
       <div className="container">
-        <ScrollReveal>
-          <div className="savings-calc-header">
-            <span className="savings-calc-eyebrow">
-              01 / SOLAR INTELLIGENCE
-            </span>
-            <h2 id="savings-calc-heading" className="savings-calc-heading">
-              See What Solar Could Save You.
+        {!standalone ? (
+          <ScrollReveal>
+            <div className="savings-calc-header">
+              <span className="savings-calc-eyebrow">Solar calculator</span>
+              <h2 id="savings-calc-heading" className="savings-calc-heading">
+                See what solar could save you
+              </h2>
+              <p className="savings-calc-description">
+                Enter your bill, pick your property type, and get an instant system size + savings estimate.
+              </p>
+            </div>
+          </ScrollReveal>
+        ) : (
+          <div className="es-calc-section-intro">
+            <h2 id="savings-calc-heading" className="es-calc-section-title">
+              Step 1 — Enter your monthly bill
             </h2>
-            <p className="savings-calc-description">
-              Estimate your recommended solar capacity, potential monthly savings, and approximate payback period based on your electricity bill.
+            <p className="es-calc-section-desc">
+              Type the amount from your electricity bill, or use quick amounts / the slider.
             </p>
           </div>
-        </ScrollReveal>
+        )}
 
-        <ScrollReveal delay={100}>
-          <div className="savings-calc-grid">
-            <div className="savings-calc-left">
-              <div className="savings-control-panel">
-                <div className="savings-control-header">
-                  <label htmlFor="bill-input" className="savings-control-label" id="bill-input-label">
-                    MONTHLY ELECTRICITY BILL
-                  </label>
-                  <span className="savings-indicative-tag">Indicative Estimate</span>
+        <div className="es-calc-layout">
+          {/* LEFT: inputs */}
+          <div className="es-calc-panel es-calc-inputs">
+            <div className="es-calc-panel-head">
+              <Calculator size={18} aria-hidden="true" />
+              <span>Your details</span>
+            </div>
+
+            {/* Sector */}
+            <fieldset className="es-calc-fieldset">
+              <legend className="es-calc-label">Property type</legend>
+              <div className="es-calc-sectors" role="radiogroup" aria-label="Property type">
+                {SECTORS.map(({ id, label, icon: Icon, hint }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="radio"
+                    aria-checked={sector === id}
+                    className={`es-calc-sector ${sector === id ? 'is-active' : ''}`}
+                    onClick={() => setSector(id)}
+                  >
+                    <Icon size={18} aria-hidden="true" />
+                    <span className="es-calc-sector-label">{label}</span>
+                    <span className="es-calc-sector-hint">{hint}</span>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
+            {/* Mode toggle */}
+            <div className="es-calc-mode-toggle" role="tablist" aria-label="Bill input method">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={inputMode === 'type'}
+                className={`es-calc-mode-btn ${inputMode === 'type' ? 'is-active' : ''}`}
+                onClick={focusTypeMode}
+              >
+                <Keyboard size={16} aria-hidden="true" />
+                Type amount
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={inputMode === 'slider'}
+                className={`es-calc-mode-btn ${inputMode === 'slider' ? 'is-active' : ''}`}
+                onClick={() => setInputMode('slider')}
+              >
+                <SlidersHorizontal size={16} aria-hidden="true" />
+                Use slider
+              </button>
+            </div>
+
+            {/* Type input — always visible, emphasized in type mode */}
+            <div className={`es-calc-type-block ${inputMode === 'type' ? 'is-emphasized' : ''}`}>
+              <label htmlFor="bill-input" className="es-calc-label">
+                Monthly electricity bill (PKR)
+              </label>
+              <div className={`es-calc-type-field ${isFocused ? 'is-focused' : ''} ${error ? 'has-error' : ''}`}>
+                <span className="es-calc-type-prefix">PKR</span>
+                <input
+                  ref={inputRef}
+                  id="bill-input"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  placeholder="e.g. 45000"
+                  value={displayValue}
+                  onChange={handleDraftChange}
+                  onFocus={() => {
+                    setIsFocused(true);
+                    setInputMode('type');
+                    setDraft(String(bill));
+                  }}
+                  onBlur={handleDraftBlur}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  className="es-calc-type-input"
+                  aria-invalid={Boolean(error)}
+                  aria-describedby="bill-help bill-error"
+                />
+                <button
+                  type="button"
+                  className="es-calc-clear-btn"
+                  onClick={() => {
+                    setDraft('');
+                    setError('Enter your monthly bill amount');
+                    inputRef.current?.focus();
+                  }}
+                  aria-label="Clear amount"
+                >
+                  Clear
+                </button>
+              </div>
+              {error ? (
+                <p id="bill-error" className="es-calc-error" role="alert">
+                  {error}
+                </p>
+              ) : (
+                <p id="bill-help" className="es-calc-hint">
+                  Tip: type the exact number from your bill — no commas needed.
+                </p>
+              )}
+            </div>
+
+            {/* Quick presets */}
+            <div className="es-calc-presets">
+              <span className="es-calc-label">Quick amounts</span>
+              <div className="es-calc-preset-row">
+                {PRESETS.map((preset) => (
+                  <button
+                    key={preset.value}
+                    type="button"
+                    className={`es-calc-preset ${bill === preset.value ? 'is-active' : ''}`}
+                    onClick={() => applyBill(preset.value)}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Slider — always available */}
+            <div className={`es-calc-slider-block ${inputMode === 'slider' ? 'is-emphasized' : ''}`}>
+                <div className="es-calc-slider-head">
+                  <span className="es-calc-label">Or drag the slider</span>
+                  <span className="es-calc-slider-live">{formatPKR(estimate.displayBill)}</span>
                 </div>
-
-                <div className="savings-bill-display">
-                  <span className="savings-bill-currency">PKR</span>
-                  <input
-                    id="bill-input"
-                    type="text"
-                    inputMode="numeric"
-                    value={inputValue === '' ? '' : Number(inputValue).toLocaleString('en-PK')}
-                    onChange={handleInputChange}
-                    onBlur={handleInputBlur}
-                    className="savings-bill-input"
-                    aria-labelledby="bill-input-label"
-                    aria-describedby="bill-input-help"
-                    min={MIN_BILL}
-                    max={MAX_BILL}
-                    step={STEP_BILL}
-                    aria-valuemin={MIN_BILL}
-                    aria-valuemax={MAX_BILL}
-                    aria-valuenow={bill}
-                  />
-                </div>
-
-                <div className="savings-slider-wrapper">
+                <div className="savings-slider-wrapper es-calc-slider">
                   <div className="savings-slider-rail" aria-hidden="true">
                     <div
                       className={`savings-slider-progress ${isSliding ? 'is-active' : ''}`}
@@ -243,152 +404,125 @@ const SolarSavingsCalculator = () => {
                     min={MIN_BILL}
                     max={MAX_BILL}
                     step={STEP_BILL}
-                    value={bill}
+                    value={Math.min(MAX_BILL, Math.max(MIN_BILL, bill))}
                     onChange={handleSliderChange}
-                    onMouseDown={handleSliderMouseDown}
-                    onMouseUp={handleSliderMouseUp}
-                    onTouchStart={handleSliderMouseDown}
-                    onTouchEnd={handleSliderMouseUp}
+                    onMouseDown={() => {
+                      setIsSliding(true);
+                      setInputMode('slider');
+                    }}
+                    onMouseUp={() => setIsSliding(false)}
+                    onTouchStart={() => {
+                      setIsSliding(true);
+                      setInputMode('slider');
+                    }}
+                    onTouchEnd={() => setIsSliding(false)}
                     className={`savings-slider-input ${isSliding ? 'is-dragging' : ''}`}
-                    aria-label="Monthly electricity bill range slider"
-                    aria-labelledby="bill-input-label"
-                    aria-valuemin={MIN_BILL}
-                    aria-valuemax={MAX_BILL}
-                    aria-valuenow={bill}
+                    aria-label="Monthly electricity bill slider"
                   />
                   <div className="savings-slider-labels">
                     <span>{formatPKR(MIN_BILL)}</span>
                     <span>{formatPKR(MAX_BILL)}</span>
                   </div>
                 </div>
-
-                <p id="bill-input-help" className="savings-helper-text">
-                  Adjust your approximate monthly utility bill. Final system sizing depends on site conditions, load profile, roof area, equipment selection, and engineering assessment.
-                </p>
               </div>
-            </div>
-
-            <div className="savings-calc-right">
-              <div className="savings-results-panel">
-                <div className="savings-results-header">
-                  <div className="savings-results-dot" />
-                  <span className="savings-results-status">ESTIMATION ENGINE</span>
-                </div>
-
-                <div className="savings-metric-card savings-metric-primary" style={{ transitionDelay: '0ms' }}>
-                  <span className="savings-metric-label">RECOMMENDED SYSTEM</span>
-                  <div className="savings-metric-value-row">
-                    <span
-                      className={`savings-metric-value savings-metric-kw ${tickActive ? 'tick' : ''}`}
-                      aria-live="polite"
-                    >
-                      {estimate.systemLabel}
-                    </span>
-                  </div>
-                  <span className="savings-metric-sub">HYBRID / ENGINEERED CONFIGURATION</span>
-                </div>
-
-                <div className="savings-metrics-grid">
-                  <div className="savings-metric-card" style={{ transitionDelay: '50ms' }}>
-                    <span className="savings-metric-label">ESTIMATED MONTHLY SAVINGS</span>
-                    <span
-                      className={`savings-metric-value ${tickActive ? 'tick' : ''}`}
-                      aria-live="polite"
-                    >
-                      {formatPKR(estimate.monthlySavings)}
-                    </span>
-                  </div>
-
-                  <div className="savings-metric-card" style={{ transitionDelay: '100ms' }}>
-                    <span className="savings-metric-label">ESTIMATED ANNUAL SAVINGS</span>
-                    <span
-                      className={`savings-metric-value ${tickActive ? 'tick' : ''}`}
-                      aria-live="polite"
-                    >
-                      {formatPKR(estimate.annualSavings)}
-                    </span>
-                  </div>
-
-                  <div className="savings-metric-card savings-metric-payback" style={{ transitionDelay: '150ms' }}>
-                    <span className="savings-metric-label">ESTIMATED PAYBACK</span>
-                    <div className="savings-metric-value-row">
-                      <span className="savings-metric-tilde">~</span>
-                      <span
-                        className={`savings-metric-value ${tickActive ? 'tick' : ''}`}
-                        aria-live="polite"
-                      >
-                        {estimate.paybackYears.toFixed(1)}
-                      </span>
-                      <span className="savings-metric-unit">YEARS</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="savings-cta-group">
-                  <button
-                    type="button"
-                    onClick={handlePrimaryCTA}
-                    className="savings-cta-primary"
-                    aria-label="Get my detailed solar estimate based on current selection"
-                  >
-                    <span>Get My Detailed Estimate</span>
-                    <span className="savings-cta-arrow">→</span>
-                  </button>
-
-                  {hasValidWhatsApp && (
-                    <button
-                      type="button"
-                      onClick={handleWhatsApp}
-                      className="savings-cta-secondary"
-                      aria-label="Discuss this solar estimate on WhatsApp"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                      </svg>
-                      <span>Discuss This Estimate on WhatsApp</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
-        </ScrollReveal>
 
-        <ScrollReveal delay={200}>
-          <div className="savings-capacity-gauge">
-            <div className="savings-gauge-header">
-              <span className="savings-gauge-label">CAPACITY RECOMMENDATION</span>
-              <span className="savings-gauge-active-tag">
-                Active: {estimate.systemLabel}
+          {/* RIGHT: results */}
+          <div className="es-calc-panel es-calc-results">
+            <div className="es-calc-panel-head">
+              <span className="es-calc-live-dot" aria-hidden="true" />
+              <span>Your estimate</span>
+              <span className="es-calc-live-tag">Updates live</span>
+            </div>
+
+            <div className="es-calc-hero-metric">
+              <span className="es-calc-metric-label">Recommended system size</span>
+              <p className={`es-calc-metric-big ${tickActive ? 'is-tick' : ''}`} aria-live="polite">
+                {estimate.systemLabel}
+              </p>
+              <span className="es-calc-metric-note">
+                Based on ~{Math.round(estimate.ratio * 100)}% bill offset for {sector} use
               </span>
             </div>
-            <div className="savings-gauge-track" role="list" aria-label="Solar system capacity tiers">
-              {CAPACITY_TIERS.map((tier, idx) => {
-                const isActive = idx === estimate.tierIndex;
-                return (
-                  <div
-                    key={tier.label}
-                    role="listitem"
-                    className={`savings-gauge-node ${isActive ? 'is-active' : ''}`}
-                    aria-current={isActive ? 'true' : undefined}
-                  >
-                    <span className="savings-gauge-node-label">{tier.label}</span>
-                    {isActive && <div className="savings-gauge-node-glow" aria-hidden="true" />}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </ScrollReveal>
 
-        <ScrollReveal delay={250}>
-          <p className="savings-final-disclaimer">
-            <span className="savings-disclaimer-bullet" aria-hidden="true">
-              ⓘ
-            </span>
-            Indicative estimate provided for preliminary guidance only. Final system sizing depends on site conditions, load profile, roof area, equipment selection, and engineering assessment.
-          </p>
-        </ScrollReveal>
+            <div className="es-calc-metrics">
+              <div className="es-calc-metric">
+                <span className="es-calc-metric-label">Monthly savings</span>
+                <strong className={tickActive ? 'is-tick' : ''} aria-live="polite">
+                  {formatPKR(estimate.monthlySavings)}
+                </strong>
+              </div>
+              <div className="es-calc-metric">
+                <span className="es-calc-metric-label">Yearly savings</span>
+                <strong className={tickActive ? 'is-tick' : ''} aria-live="polite">
+                  {formatPKR(estimate.annualSavings)}
+                </strong>
+              </div>
+              <div className="es-calc-metric">
+                <span className="es-calc-metric-label">Est. payback</span>
+                <strong className={tickActive ? 'is-tick' : ''} aria-live="polite">
+                  ~{estimate.paybackYears.toFixed(1)} years
+                </strong>
+              </div>
+              <div className="es-calc-metric">
+                <span className="es-calc-metric-label">Bill after solar (est.)</span>
+                <strong className={tickActive ? 'is-tick' : ''} aria-live="polite">
+                  {formatPKR(estimate.afterBill)}
+                </strong>
+              </div>
+            </div>
+
+            <div className="es-calc-story">
+              <p>
+                If your bill is <strong>{formatPKR(estimate.displayBill)}</strong>, a{' '}
+                <strong>{estimate.systemLabel}</strong> system could save about{' '}
+                <strong>{formatPKR(estimate.monthlySavings)}</strong> every month.
+              </p>
+            </div>
+
+            <div className="es-calc-actions">
+              <button
+                type="button"
+                onClick={handlePrimaryCTA}
+                className="es-btn-primary es-btn-shine es-calc-primary-btn"
+                disabled={submitting || Boolean(error && draft === '')}
+              >
+                {submitting ? 'Saving…' : 'Get a detailed quote'}
+              </button>
+              {hasValidWhatsApp && (
+                <button type="button" onClick={handleWhatsApp} className="es-calc-whatsapp-btn">
+                  WhatsApp this estimate
+                </button>
+              )}
+            </div>
+
+            <p className="es-calc-disclaimer">
+              Indicative only — final size depends on roof, load, and site survey.
+            </p>
+          </div>
+        </div>
+
+        {/* Capacity strip */}
+        <div className="es-calc-gauge">
+          <div className="es-calc-gauge-head">
+            <span>System sizes we commonly install</span>
+            <span className="es-calc-gauge-active">Selected: {estimate.systemLabel}</span>
+          </div>
+          <div className="es-calc-gauge-track" role="list">
+            {CAPACITY_TIERS.map((tier, idx) => (
+              <button
+                key={tier.label}
+                type="button"
+                role="listitem"
+                className={`es-calc-gauge-node ${idx === estimate.tierIndex ? 'is-active' : ''}`}
+                onClick={() => applyBill(tier.minBill === 5000 ? 15000 : tier.minBill + 1000)}
+                aria-current={idx === estimate.tierIndex ? 'true' : undefined}
+              >
+                {tier.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );

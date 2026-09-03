@@ -1,16 +1,11 @@
+'use client';
+
 import React from 'react';
-import { Link } from 'react-router-dom';
-import residentialImg from '../assets/residential_solar_villa.webp';
-import commercialImg from '../assets/commercial_solar_array.webp';
-import industrialImg from '../assets/industrial_solar_plant.webp';
+import Link from 'next/link';
+import { getSectorImage } from '@/lib/images';
 
 const ProjectCard = ({ project, onSelect }) => {
-  const getProjectImage = (cat) => {
-    if (cat === 'residential') return residentialImg;
-    if (cat === 'commercial') return commercialImg;
-    if (cat === 'industrial') return industrialImg;
-    return commercialImg;
-  };
+  const getProjectImage = (cat) => getSectorImage(cat);
 
   return (
     <div className="project-editorial-card">
@@ -54,7 +49,7 @@ const ProjectCard = ({ project, onSelect }) => {
               <span className="project-cta-arrow">→</span>
             </button>
           ) : (
-            <Link to="/projects" className="project-card-link-cta">
+            <Link href="/projects" className="project-card-link-cta">
               <span>View Project</span>
               <span className="project-cta-arrow">→</span>
             </Link>

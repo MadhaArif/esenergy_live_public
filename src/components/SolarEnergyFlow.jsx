@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import ScrollReveal from './ScrollReveal';
 
@@ -109,7 +111,7 @@ const SolarEnergyFlow = () => {
               <text x="25" y="32" className="mono-decor">[SYS.REF: PV-EFLOW-01]</text>
               <text x="975" y="32" className="mono-decor" textAnchor="end">LAT: 33.6844° N // LON: 73.0479° E</text>
               <line x1="10" y1="360" x2="990" y2="360" stroke="rgba(194, 155, 56, 0.1)" strokeWidth="1" />
-              <text x="25" y="375" className="mono-decor">EN ENERGY ENGINEERING SCHEMATIC</text>
+              <text x="25" y="375" className="mono-decor">ES ENERGY ENGINEERING SCHEMATIC</text>
               <text x="975" y="375" className="mono-decor" textAnchor="end">SCALE: NOT TO SCALE</text>
 
               {/* Connection Paths */}

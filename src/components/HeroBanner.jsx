@@ -1,76 +1,112 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import residentialSolarVilla from '../assets/residential_solar_villa.webp';
+'use client';
 
-const HeroBanner = () => {
-  const headlineText = "Solar, Engineered Around You.";
-  const words = headlineText.split(" ");
+import { useCallback, useRef } from 'react';
+import Link from 'next/link';
+import { siteImages } from '@/lib/images';
+import { heroContent } from '@/lib/home';
+import RotatingText from './RotatingText';
+import HeroParticles from './HeroParticles';
+import HeroScrollCue from './HeroScrollCue';
+import MagneticLink from './MagneticLink';
+
+export default function HeroBanner() {
+  const heroRef = useRef(null);
+  const bgRef = useRef(null);
+  const contentRef = useRef(null);
+
+  const onMouseMove = useCallback((e) => {
+    if (!heroRef.current || !bgRef.current) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const rect = heroRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+
+    bgRef.current.style.transform = `scale(1.08) translate(${x * -22}px, ${y * -14}px)`;
+
+    if (contentRef.current) {
+      contentRef.current.style.transform = `translate(${x * 8}px, ${y * 5}px)`;
+    }
+  }, []);
+
+  const onMouseLeave = useCallback(() => {
+    if (bgRef.current) bgRef.current.style.transform = 'scale(1.03)';
+    if (contentRef.current) contentRef.current.style.transform = '';
+  }, []);
 
   return (
-    <section className="premium-hero">
-      {/* Subtle engineering grid background — static, near-invisible */}
-      <div className="hero-grid-bg"></div>
+    <section
+      className="es-hero"
+      ref={heroRef}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+    >
+      <HeroParticles />
 
-      <div className="container">
-        <div className="hero-grid">
-          
-          {/* Left Side: Content & Action */}
-          <div className="hero-text-col">
-            <span className="hero-eyebrow">
-              SMART SOLAR / ENGINEERED FOR REAL LIFE
-            </span>
-            
-            <h1 className="hero-headline">
-              {words.map((word, idx) => (
-                <span key={idx} className="hero-word-wrapper">
-                  <span 
-                    className="hero-word" 
-                    style={{ animationDelay: `${150 + idx * 80}ms` }}
-                  >
-                    {word}
-                  </span>
-                </span>
+      <div className="es-hero-orbs" aria-hidden="true">
+        <span className="es-orb es-orb-1" />
+        <span className="es-orb es-orb-2" />
+        <span className="es-orb es-orb-3" />
+      </div>
+
+      <div
+        ref={bgRef}
+        className="es-hero-bg"
+        style={{ backgroundImage: `url(${siteImages.hero})` }}
+        aria-hidden="true"
+      />
+      <div className="es-hero-overlay" aria-hidden="true" />
+      <div className="es-hero-grid-lines" aria-hidden="true" />
+      <div className="es-hero-vignette" aria-hidden="true" />
+
+      <div className="container es-hero-inner" ref={contentRef}>
+        <div className="es-hero-content">
+          <p className="es-hero-kicker">
+            <span className="es-kicker-dot" />
+            {heroContent.kicker}
+          </p>
+          <h1 className="es-hero-title">
+            {heroContent.titlePrefix}{' '}
+            <RotatingText words={heroContent.rotatingWords} className="es-hero-accent" />
+            <br />
+            <span className="es-hero-title-suffix">{heroContent.titleSuffix}</span>
+          </h1>
+          <p className="es-hero-lead">{heroContent.lead}</p>
+          <div className="es-hero-actions">
+            <MagneticLink href="/contact#contact-form" className="es-btn-primary es-btn-shine es-btn-glow">
+              Request a free quote
+            </MagneticLink>
+            <MagneticLink href="/calculator" className="es-btn-secondary es-btn-glass">
+              Calculate savings
+            </MagneticLink>
+          </div>
+          <ul className="es-hero-trust">
+            {heroContent.trustBullets.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="es-hero-panel" aria-label="ES Energy highlights">
+          <div className="es-hero-panel-card es-glass-card es-border-glow">
+            <div className="es-panel-sparkle" aria-hidden="true" />
+            <p className="es-hero-panel-label">{heroContent.panelLabel}</p>
+            <ul className="es-hero-panel-list">
+              {heroContent.panelItems.map((item, i) => (
+                <li key={item.title} style={{ '--item-i': i }}>
+                  <strong>{item.title}</strong>
+                  <span>{item.text}</span>
+                </li>
               ))}
-            </h1>
-            
-            <p className="hero-description">
-              High-performance solar systems designed around your energy use, property, and long-term goals.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="hero-cta-group">
-              <Link to="/contact" className="btn-hero-primary">
-                Get a Free Consultation <span className="btn-arrow">→</span>
-              </Link>
-              <Link to="/solutions" className="btn-hero-secondary">
-                Explore Solutions <span className="btn-arrow">→</span>
-              </Link>
-            </div>
+            </ul>
+            <Link href="/about" className="es-hero-panel-link">
+              About ES Energy →
+            </Link>
           </div>
-
-          {/* Right Side: Product Image Display */}
-          <div className="hero-media-col animate-hero-media">
-            <div className="hero-image-wrapper">
-              <img 
-                src={residentialSolarVilla} 
-                alt="Premium architectural solar installation" 
-                className="hero-image"
-              />
-              {/* Subtle image sweep shine */}
-              <div className="hero-image-shine"></div>
-              
-              {/* Small Editorial Annotation */}
-              <div className="hero-annotation">
-                <span className="annotation-label">SYSTEM DESIGN</span>
-                <span className="annotation-value">ENGINEERED FOR YOUR PROPERTY</span>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
+
+      <HeroScrollCue />
     </section>
   );
-};
-
-export default HeroBanner;
+}

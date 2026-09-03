@@ -1,0 +1,637 @@
+/* ES Energy — Clean professional UI (fixes overlap + reduces visual noise) */
+
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f8fa;
+  --border-color: #e2e8f0;
+  --text-primary: #0c2340;
+  --text-secondary: #475569;
+  --brand-green: #1a9d6c;
+  --brand-blue-deep: #0c2340;
+  --brand-orange: #e8872b;
+  --section-pad: 72px;
+  --container-max: 1140px;
+}
+
+body {
+  background: var(--bg-primary) !important;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: var(--container-max);
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* ---- Kill gimmicky motion that causes layout bugs ---- */
+.tilt-3d,
+.hero-scene-3d,
+.hero-float-orb,
+.hero-particle,
+.trust-bar-marquee,
+.calc-preview-ring {
+  display: none !important;
+}
+
+.scroll-reveal {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+.scroll-reveal.sr-card,
+.scroll-reveal.sr-image,
+.scroll-reveal.sr-button,
+.scroll-reveal.sr-heading-wrap .sr-word {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.sr-word-wrapper {
+  overflow: visible !important;
+  margin-right: 0.28em !important;
+}
+
+/* ---- Navbar ---- */
+.site-navbar {
+  height: 72px;
+  background: #fff !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  box-shadow: none !important;
+}
+
+.brand-lockup-nav {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+
+.brand-logo-tagline {
+  display: none !important;
+}
+
+.brand-logo-frame {
+  background: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.brand-lockup-nav .brand-logo-img {
+  height: 52px;
+}
+
+.nav-link-item {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.nav-link-item.active,
+.nav-link-item:hover {
+  color: var(--brand-blue-deep);
+}
+
+.nav-link-item.active::after {
+  display: none;
+}
+
+.nav-cta-btn {
+  background: var(--brand-green) !important;
+  border-color: var(--brand-green) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+/* ---- Hero (home) ---- */
+.premium-hero.es-hero-cinematic {
+  min-height: auto !important;
+  padding: 56px 0 64px !important;
+  background: var(--brand-blue-deep) !important;
+}
+
+.hero-bg-photo {
+  animation: none !important;
+  opacity: 0.35;
+}
+
+.hero-bg-gradient {
+  background: linear-gradient(90deg, rgba(12, 35, 64, 0.97) 0%, rgba(12, 35, 64, 0.75) 55%, rgba(12, 35, 64, 0.4) 100%) !important;
+}
+
+.hero-grid-cinematic {
+  grid-template-columns: 1fr !important;
+  gap: 32px !important;
+}
+
+.hero-headline-light {
+  font-size: clamp(1.85rem, 4vw, 2.75rem) !important;
+  line-height: 1.2 !important;
+  color: #fff !important;
+}
+
+.hero-headline-light .hero-highlight {
+  background: none !important;
+  color: var(--brand-green) !important;
+  -webkit-text-fill-color: var(--brand-green) !important;
+}
+
+.hero-description-light {
+  font-size: 1rem !important;
+  max-width: 560px;
+  margin-bottom: 8px;
+}
+
+.hero-badge {
+  margin-bottom: 16px;
+  font-size: 0.75rem;
+}
+
+.hero-cta-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.hero-trust-chips {
+  display: none;
+}
+
+.hero-media-col {
+  display: none !important;
+}
+
+.btn-hero-glow,
+.btn-hero-glass {
+  border-radius: 8px !important;
+  height: 48px;
+  padding: 0 22px !important;
+  font-size: 0.9rem !important;
+  box-shadow: none !important;
+}
+
+.btn-hero-glow::after,
+.btn-hero-glass::after {
+  display: none !important;
+}
+
+.btn-hero-glow {
+  background: var(--brand-green) !important;
+  color: #fff !important;
+}
+
+.btn-hero-glass {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  color: #fff !important;
+}
+
+/* ---- Trust bar ---- */
+.trust-bar {
+  background: var(--brand-green) !important;
+  padding: 12px 0 !important;
+}
+
+.trust-bar-track {
+  mask-image: none !important;
+  overflow: visible !important;
+}
+
+.trust-bar-list {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 8px 24px !important;
+  padding: 0 !important;
+  animation: none !important;
+  width: 100% !important;
+}
+
+.trust-bar-item {
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+/* ---- Stats ---- */
+.impact-stats-band {
+  padding: 32px 0 !important;
+  background: var(--brand-blue-deep) !important;
+  border: none !important;
+}
+
+.impact-stats-grid {
+  gap: 16px;
+}
+
+.impact-stat-item {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+  padding: 8px;
+}
+
+.impact-stat-value {
+  color: #fff !important;
+  background: none !important;
+  -webkit-text-fill-color: #fff !important;
+  font-size: 1.5rem;
+}
+
+.impact-stat-label {
+  color: var(--brand-green) !important;
+  font-size: 0.8rem;
+}
+
+.impact-stat-sub {
+  font-size: 0.7rem;
+}
+
+/* ---- Sections ---- */
+.site-main section {
+  padding: var(--section-pad) 0 !important;
+}
+
+.site-main section:nth-of-type(even) {
+  background: var(--bg-secondary) !important;
+}
+
+/* Headings — solid, readable */
+.trust-heading,
+.brand-intro-headline,
+.industries-heading,
+.timeline-heading,
+.projects-heading,
+.section-title,
+.final-cta-heading,
+.calculator-promo-heading {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  color: var(--brand-blue-deep) !important;
+  font-size: clamp(1.5rem, 3vw, 2rem) !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.trust-eyebrow,
+.brand-intro-eyebrow,
+.industries-eyebrow,
+.timeline-eyebrow,
+.projects-eyebrow,
+.section-eyebrow,
+.featured-tag {
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  color: var(--brand-green) !important;
+  margin-bottom: 8px !important;
+}
+
+.trust-header-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+  margin-bottom: 40px;
+}
+
+.trust-description,
+.brand-intro-description,
+.industries-description {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ---- Pillar cards ---- */
+.trust-pillars-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 20px !important;
+}
+
+.trust-pillar-item {
+  padding: 24px 20px !important;
+  border-radius: 12px !important;
+  border: 1px solid var(--border-color) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  height: 100%;
+}
+
+.trust-pillar-item:hover {
+  transform: none !important;
+  box-shadow: 0 4px 16px rgba(12, 35, 64, 0.08) !important;
+}
+
+.trust-pillar-item::after {
+  display: none !important;
+}
+
+.trust-pillar-number {
+  position: static !important;
+  display: block;
+  margin-bottom: 12px;
+  opacity: 1 !important;
+  background: none !important;
+  padding: 0 !important;
+  font-size: 0.75rem;
+  color: var(--brand-green) !important;
+}
+
+.trust-pillar-icon-wrap {
+  display: none !important;
+}
+
+.trust-pillar-glow {
+  display: none !important;
+}
+
+.trust-pillar-title {
+  font-size: 1rem !important;
+  padding-right: 0 !important;
+  margin-bottom: 8px;
+}
+
+.trust-pillar-text {
+  font-size: 0.875rem !important;
+}
+
+/* ---- Sector cards ---- */
+.sector-visual-grid {
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 20px !important;
+}
+
+.sector-visual-card {
+  min-height: 280px !important;
+  border-radius: 12px !important;
+}
+
+.sector-visual-card:hover {
+  transform: none !important;
+}
+
+/* ---- Calculator promo ---- */
+.calculator-promo-section {
+  padding: var(--section-pad) 0 !important;
+  background: var(--bg-secondary) !important;
+}
+
+.calculator-promo-premium {
+  display: block !important;
+  padding: 32px !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.calculator-promo-visual {
+  display: none !important;
+}
+
+.calculator-promo-features {
+  margin: 16px 0 20px;
+}
+
+.calculator-promo-btn {
+  display: inline-flex;
+  padding: 12px 24px;
+  background: var(--brand-blue-deep);
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: none !important;
+}
+
+/* ---- Page heroes (inner pages) ---- */
+.page-hero {
+  padding: 48px 0 40px !important;
+  background: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+.page-hero::before,
+.page-hero::after {
+  display: none !important;
+}
+
+.page-hero h1 {
+  color: var(--brand-blue-deep) !important;
+  font-size: clamp(1.75rem, 3vw, 2.25rem) !important;
+  font-weight: 700 !important;
+}
+
+.page-hero p {
+  color: var(--text-secondary) !important;
+  font-size: 1rem !important;
+}
+
+.page-hero .breadcrumbs,
+.page-hero .breadcrumbs a {
+  color: var(--text-muted) !important;
+}
+
+/* ---- Footer ---- */
+.site-footer {
+  background: var(--brand-blue-deep) !important;
+}
+
+.site-footer::before {
+  display: none;
+}
+
+/* ---- Final CTA ---- */
+.final-cta-section {
+  background: var(--brand-blue-deep) !important;
+  padding: 56px 0 !important;
+}
+
+.final-cta-heading {
+  color: #fff !important;
+}
+
+.final-cta-description {
+  color: rgba(255, 255, 255, 0.8) !important;
+  max-width: 520px;
+  margin: 0 auto 24px;
+}
+
+.final-cta-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.final-cta-btn-primary {
+  background: var(--brand-green) !important;
+  color: #fff !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+.final-cta-btn-secondary {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  color: #fff !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+}
+
+/* ---- Section header component ---- */
+.premium-section-header {
+  margin-bottom: 36px;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 991px) {
+  .trust-header-grid,
+  .trust-pillars-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .sector-visual-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.calculator-promo-text {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.65;
+  margin: 12px 0 20px;
+  max-width: 560px;
+}
+
+.calculator-promo-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brand-green);
+  margin: 0 0 8px;
+}
+
+/* Timeline — simpler, no spine overlap */
+.timeline-journey-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.timeline-spine {
+  display: none !important;
+}
+
+.timeline-step-row {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.timeline-step-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--brand-green);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.timeline-content-card {
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.timeline-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--brand-blue-deep);
+  margin: 0 0 8px;
+}
+
+.timeline-card-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.timeline-card-divider {
+  display: none;
+}
+
+.btn-brand-intro-link {
+  display: inline-block;
+  margin-top: 16px;
+  font-weight: 600;
+  color: var(--brand-green);
+  text-decoration: none;
+}
+
+.btn-brand-intro-link:hover {
+  text-decoration: underline;
+}
+
+.projects-browse-all-btn {
+  display: inline-block;
+  margin-top: 24px;
+  font-weight: 600;
+  color: var(--brand-blue-deep);
+  text-decoration: none;
+}
+
+.projects-browse-all-btn:hover {
+  color: var(--brand-green);
+}
+
+.brand-intro-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.brand-intro-image-wrapper {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.brand-intro-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .trust-header-grid,
+  .trust-pillars-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .trust-bar-item {
+    font-size: 0.65rem;
+  }
+
+  .impact-stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}

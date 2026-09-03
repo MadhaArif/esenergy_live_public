@@ -1,31 +1,27 @@
 {
-  "name": "en-energy",
+  "name": "es-energy",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "1.0.0",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "dev": "node scripts/dev.mjs",
+    "dev:fast": "next dev",
+    "dev:clean": "rm -rf .next && next dev",
+    "build": "node scripts/build.mjs",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.57.4",
     "lucide-react": "^1.31.0",
+    "next": "^15.5.2",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.30.4"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.13.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.3",
     "eslint": "^9.13.0",
-    "eslint-plugin-react": "^7.37.2",
-    "eslint-plugin-react-hooks": "^5.0.0",
-    "eslint-plugin-react-refresh": "^0.4.14",
-    "globals": "^15.11.0",
-    "sharp": "^0.34.5",
-    "vite": "^5.4.10"
+    "eslint-config-next": "^15.5.2"
   }
 }

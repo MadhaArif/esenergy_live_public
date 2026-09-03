@@ -1,10 +1,14 @@
+'use client';
+
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { productsData, solutionCategories } from '../data';
+import { getContactInquiryUrl } from '@/lib/inquiry';
 
 const ProductSearch = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -76,12 +80,12 @@ const ProductSearch = () => {
       if (selectedIndex >= 0 && selectedIndex < results.length) {
         e.preventDefault();
         const selected = results[selectedIndex];
-        navigate(`/solutions?id=${selected.id}`);
+        router.push(`/solutions?id=${selected.id}`);
         setResults([]);
         setSelectedIndex(-1);
       } else if (query.trim()) {
         e.preventDefault();
-        navigate(`/solutions?search=${encodeURIComponent(query.trim())}`);
+        router.push(`/solutions?search=${encodeURIComponent(query.trim())}`);
         setResults([]);
         setSelectedIndex(-1);
       }
@@ -89,7 +93,7 @@ const ProductSearch = () => {
   };
 
   const handleResultClick = (productId) => {
-    navigate(`/solutions?id=${productId}`);
+    router.push(`/solutions?id=${productId}`);
     setResults([]);
     setSelectedIndex(-1);
   };
@@ -163,7 +167,7 @@ const ProductSearch = () => {
 
                   {/* View All Results link */}
                   <Link
-                    to={`/solutions?search=${encodeURIComponent(query.trim())}`}
+                    href={`/solutions?search=${encodeURIComponent(query.trim())}`}
                     className="search-view-all"
                     onClick={() => {
                       setResults([]);
@@ -201,10 +205,13 @@ const ProductSearch = () => {
                     : 'Price on request'}
                 </p>
                 <Link
-                  to={`/solutions?id=${spotlightProduct.id}`}
+                  href={getContactInquiryUrl({
+                    product: spotlightProduct.title || spotlightProduct.name,
+                    brand: spotlightProduct.brand,
+                  })}
                   className="spotlight-btn"
                 >
-                  Shop Now <span className="btn-arrow">→</span>
+                  Contact Us <span className="btn-arrow">→</span>
                 </Link>
               </div>
             </div>

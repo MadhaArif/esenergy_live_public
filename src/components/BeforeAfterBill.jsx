@@ -1,79 +1,105 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import ScrollReveal from './ScrollReveal';
+'use client';
 
-const BEFORE_BILL_DEFAULT = 65000;
-const AFTER_BILL_DEFAULT = 6500;
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
+import { GripVertical, ArrowRight } from 'lucide-react';
 
-const formatPKR = (num) => 'PKR ' + Math.round(num).toLocaleString('en-PK');
+const DEFAULT_BEFORE = 45000;
+const DEFAULT_RATIO = 0.7;
 
-const BeforeAfterBill = () => {
+const formatPKR = (num) => `PKR ${Math.round(num).toLocaleString('en-PK')}`;
+const formatNum = (num) => Math.round(num).toLocaleString('en-PK');
+
+/**
+ * Before / after bill comparison — designed for average users:
+ * personal numbers from the calculator, clear labels, taught drag interaction.
+ */
+export default function BeforeAfterBill() {
   const containerRef = useRef(null);
-  const [split, setSplit] = useState(50);
-  const [isDragging, setIsDragging] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const [billTick, setBillTick] = useState(false);
+  const taughtRef = useRef(false);
   const dragActiveRef = useRef(false);
-  const tickTimerRef = useRef(null);
-  const lastSplitBucketRef = useRef(-1);
 
+  const [beforeBill, setBeforeBill] = useState(DEFAULT_BEFORE);
+  const [ratio, setRatio] = useState(DEFAULT_RATIO);
+  const [systemLabel, setSystemLabel] = useState('6.2 kW');
+  const [sector, setSector] = useState('residential');
+  const [split, setSplit] = useState(42);
+  const [isDragging, setIsDragging] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const [view, setView] = useState('compare'); // today | solar | compare
+
+  const afterBill = useMemo(
+    () => Math.max(0, Math.round(beforeBill * (1 - ratio))),
+    [beforeBill, ratio]
+  );
+  const monthlySave = beforeBill - afterBill;
+  const yearlySave = monthlySave * 12;
+  const savePercent = Math.round(ratio * 100);
+
+  // Sync with calculator above
   useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mq.matches);
-    const onChange = (e) => setPrefersReducedMotion(e.matches);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-
-  const solarOffsetPercent = useMemo(() => {
-    const delta = BEFORE_BILL_DEFAULT - AFTER_BILL_DEFAULT;
-    return Math.round((delta / BEFORE_BILL_DEFAULT) * 100);
-  }, []);
-
-  const monthlyReduction = BEFORE_BILL_DEFAULT - AFTER_BILL_DEFAULT;
-  const annualSaving = monthlyReduction * 12;
-
-  const splitRatio = split / 100;
-  const displayBillBefore = prefersReducedMotion
-    ? BEFORE_BILL_DEFAULT
-    : Math.round(BEFORE_BILL_DEFAULT - (BEFORE_BILL_DEFAULT - AFTER_BILL_DEFAULT) * Math.pow(splitRatio, 0.85) * 0.92);
-  const displayBillAfter = prefersReducedMotion
-    ? AFTER_BILL_DEFAULT
-    : Math.round(AFTER_BILL_DEFAULT + (BEFORE_BILL_DEFAULT - AFTER_BILL_DEFAULT) * Math.pow(1 - splitRatio, 0.85) * 0.08);
-
-  useEffect(() => {
-    if (isDragging) {
-      window.dispatchEvent(new CustomEvent('cursor-dragging-start'));
-    } else {
-      window.dispatchEvent(new CustomEvent('cursor-dragging-end'));
-    }
-  }, [isDragging]);
-
-  useEffect(() => {
-    if (prefersReducedMotion) return;
-    const bucket = Math.floor(split / 8);
-    if (bucket !== lastSplitBucketRef.current) {
-      lastSplitBucketRef.current = bucket;
-      if (tickTimerRef.current) clearTimeout(tickTimerRef.current);
-      setBillTick(true);
-      tickTimerRef.current = setTimeout(() => setBillTick(false), 200);
-    }
-  }, [split, prefersReducedMotion]);
-
-  useEffect(() => {
-    return () => {
-      if (tickTimerRef.current) clearTimeout(tickTimerRef.current);
-      window.dispatchEvent(new CustomEvent('cursor-dragging-end'));
+    const apply = (d = {}) => {
+      if (typeof d.bill === 'number' && d.bill > 0) setBeforeBill(d.bill);
+      if (typeof d.ratio === 'number') setRatio(d.ratio);
+      if (d.systemLabel) setSystemLabel(d.systemLabel);
+      if (d.sector) setSector(d.sector);
     };
+
+    if (typeof window !== 'undefined' && window.__esCalcEstimate) {
+      apply(window.__esCalcEstimate);
+    }
+
+    const onEstimate = (e) => apply(e.detail || {});
+    window.addEventListener('es-calc-estimate', onEstimate);
+    return () => window.removeEventListener('es-calc-estimate', onEstimate);
   }, []);
 
-  const clampSplit = (val) => Math.min(100, Math.max(0, val));
+  // Gentle auto-demo once so users understand the drag
+  useEffect(() => {
+    if (taughtRef.current || hasInteracted) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      taughtRef.current = true;
+      return;
+    }
 
-  const updateSplitFromClientX = (clientX) => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting || taughtRef.current) return;
+        taughtRef.current = true;
+        let t = 0;
+        const start = 42;
+        const run = () => {
+          t += 1;
+          // sweep right then settle mid-left (more "after solar" visible)
+          if (t < 18) setSplit(start + t * 1.6);
+          else if (t < 36) setSplit(70 - (t - 18) * 1.4);
+          else {
+            setSplit(38);
+            return;
+          }
+          requestAnimationFrame(run);
+        };
+        requestAnimationFrame(run);
+        observer.disconnect();
+      },
+      { threshold: 0.35 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasInteracted]);
+
+  const clampSplit = (val) => Math.min(92, Math.max(8, val));
+
+  const updateSplitFromClientX = useCallback((clientX) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const raw = ((clientX - rect.left) / rect.width) * 100;
     setSplit(clampSplit(raw));
-  };
+  }, []);
 
   useEffect(() => {
     const handleMove = (e) => {
@@ -95,199 +121,197 @@ const BeforeAfterBill = () => {
       window.removeEventListener('touchmove', handleMove);
       window.removeEventListener('touchend', handleUp);
     };
-  }, []);
+  }, [updateSplitFromClientX]);
 
   const handleStart = (e) => {
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     dragActiveRef.current = true;
     setIsDragging(true);
+    setHasInteracted(true);
+    setView('compare');
     updateSplitFromClientX(clientX);
     if (e.cancelable) e.preventDefault();
   };
 
   const handleKeyDown = (e) => {
-    switch (e.key) {
-      case 'ArrowLeft':
-        e.preventDefault();
-        setSplit((s) => clampSplit(s - 5));
-        break;
-      case 'ArrowRight':
-        e.preventDefault();
-        setSplit((s) => clampSplit(s + 5));
-        break;
-      case 'Home':
-        e.preventDefault();
-        setSplit(0);
-        break;
-      case 'End':
-        e.preventDefault();
-        setSplit(100);
-        break;
-      default:
-        break;
+    setHasInteracted(true);
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      setSplit((s) => clampSplit(s - 5));
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      setSplit((s) => clampSplit(s + 5));
     }
   };
+
+  const setQuickView = (next) => {
+    setHasInteracted(true);
+    setView(next);
+    if (next === 'today') setSplit(88);
+    if (next === 'solar') setSplit(12);
+    if (next === 'compare') setSplit(42);
+  };
+
+  const sectorWord =
+    sector === 'commercial' ? 'business' : sector === 'industrial' ? 'factory' : 'home';
 
   const beforeClip = `inset(0 ${100 - split}% 0 0)`;
   const afterClip = `inset(0 0 0 ${split}%)`;
 
-  const dynamicOffset = Math.round(solarOffsetPercent * (split / 100));
-  const dynamicReduction = Math.round(monthlyReduction * (split / 100));
-
-  const handleAriaText = `Split at ${Math.round(split)} percent. Before solar bill ${formatPKR(BEFORE_BILL_DEFAULT)}. After solar bill ${formatPKR(AFTER_BILL_DEFAULT)}.`;
-
   return (
-    <section className="before-after-bill-section" aria-labelledby="before-after-heading">
+    <section className="es-compare-section" aria-labelledby="es-compare-heading">
       <div className="container">
-        <ScrollReveal>
-          <div className="before-after-bill-header">
-            <span className="before-after-bill-eyebrow">02 / SOLAR IMPACT</span>
-            <h2 id="before-after-heading" className="before-after-bill-heading">
-              See What Changes After Solar.
-            </h2>
-            <p className="before-after-bill-description">
-              Compare a conventional electricity bill with an engineered solar configuration and see how dramatically your monthly energy cost can change.
+        <header className="es-compare-header">
+          <p className="es-compare-kicker">Step 2 — Feel the difference</p>
+          <h2 id="es-compare-heading" className="es-compare-title">
+            Your bill today vs with solar
+          </h2>
+          <p className="es-compare-lead">
+            Using the <strong>{formatPKR(beforeBill)}</strong> you entered above for a typical{' '}
+            <strong>{sectorWord}</strong> setup
+            {systemLabel ? (
+              <>
+                {' '}
+                (~<strong>{systemLabel}</strong>)
+              </>
+            ) : null}
+            . Drag the handle — or tap a button — to compare.
+          </p>
+        </header>
+
+        {/* Instant-read cards — primary for cognition */}
+        <div className="es-compare-cards" role="list">
+          <article className="es-compare-card es-compare-card-before" role="listitem">
+            <span className="es-compare-card-tag">Today</span>
+            <p className="es-compare-card-label">Monthly bill without solar</p>
+            <p className="es-compare-card-value">{formatPKR(beforeBill)}</p>
+            <p className="es-compare-card-note">You pay the full grid bill every month.</p>
+          </article>
+
+          <div className="es-compare-card-arrow" aria-hidden="true">
+            <ArrowRight size={22} />
+          </div>
+
+          <article className="es-compare-card es-compare-card-after" role="listitem">
+            <span className="es-compare-card-tag es-compare-card-tag-good">With solar</span>
+            <p className="es-compare-card-label">Estimated monthly bill</p>
+            <p className="es-compare-card-value es-compare-card-value-good">{formatPKR(afterBill)}</p>
+            <p className="es-compare-card-note">
+              You could keep about <strong>{formatPKR(monthlySave)}</strong> each month.
             </p>
-          </div>
-        </ScrollReveal>
+          </article>
+        </div>
 
-        <ScrollReveal delay={120}>
-          <div
-            ref={containerRef}
-            className={`bill-comparison ${isDragging ? 'is-dragging' : ''}`}
-            role="application"
-            aria-label="Before and after solar electricity bill comparison"
+        {/* Emotional takeaway */}
+        <div className="es-compare-takeaway">
+          <p>
+            That’s roughly <strong>{formatPKR(yearlySave)}</strong> a year — about{' '}
+            <strong>{savePercent}%</strong> of your current bill going back into your pocket.
+          </p>
+        </div>
+
+        {/* Simple controls — for people who won’t discover drag */}
+        <div className="es-compare-toggles" role="tablist" aria-label="Comparison view">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === 'today'}
+            className={`es-compare-toggle ${view === 'today' ? 'is-active' : ''}`}
+            onClick={() => setQuickView('today')}
           >
-            <div className="bill-comparison-inner">
-              <div
-                className={`bill-side bill-before ${prefersReducedMotion ? '' : ''}`}
-                style={{ clipPath: beforeClip }}
-                aria-hidden="true"
-              >
-                <div className="bill-side-label-rail">
-                  <span className="bill-side-label">BEFORE SOLAR</span>
-                  <span className="bill-side-tag bill-tag-warning">GRID DEPENDENCY</span>
-                </div>
-                <div className="bill-side-content">
-                  <span className="bill-value-label">Monthly Electricity Bill</span>
-                  <div className="bill-value-row">
-                    <span className="bill-value-prefix">PKR</span>
-                    <span className={`bill-value bill-value-before ${billTick ? 'tick' : ''}`}>{displayBillBefore.toLocaleString('en-PK')}</span>
-                  </div>
-                  <div className="bill-side-meta">
-                    <span className="bill-meta-item">
-                      <span className="bill-meta-dot bill-dot-warning" aria-hidden="true" />
-                      HIGH MONTHLY COST
-                    </span>
-                    <span className="bill-meta-item">
-                      <span className="bill-meta-dot bill-dot-warning" aria-hidden="true" />
-                      NO ON-SITE GENERATION
-                    </span>
-                  </div>
-                </div>
-                <div className="bill-coord-mark bill-coord-tl" aria-hidden="true">X 0.00 / Y 0.00</div>
-                <div className="bill-coord-mark bill-coord-bl" aria-hidden="true">X 0.00 / Y 1.00</div>
-                <div className="bill-watermark" aria-hidden="true">EN ENERGY / SYSTEM IMPACT</div>
-              </div>
+            Show today
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === 'compare'}
+            className={`es-compare-toggle ${view === 'compare' ? 'is-active' : ''}`}
+            onClick={() => setQuickView('compare')}
+          >
+            Compare
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === 'solar'}
+            className={`es-compare-toggle ${view === 'solar' ? 'is-active' : ''}`}
+            onClick={() => setQuickView('solar')}
+          >
+            Show with solar
+          </button>
+        </div>
 
-              <div
-                className="bill-side bill-after"
-                style={{ clipPath: afterClip }}
-                aria-hidden="true"
-              >
-                <div className="bill-side-label-rail">
-                  <span className="bill-side-label bill-side-label-gold">AFTER SOLAR</span>
-                  <span className="bill-side-tag bill-tag-success">SOLAR OFFSET</span>
-                </div>
-                <div className="bill-side-content">
-                  <span className="bill-value-label">Monthly Electricity Bill</span>
-                  <div className="bill-value-row">
-                    <span className="bill-value-prefix">PKR</span>
-                    <span className={`bill-value bill-value-after ${billTick ? 'tick' : ''}`}>{displayBillAfter.toLocaleString('en-PK')}</span>
-                  </div>
-                  <div className="bill-side-meta">
-                    <span className="bill-meta-item">
-                      <span className="bill-meta-dot bill-dot-gold" aria-hidden="true" />
-                      LOWER MONTHLY COST
-                    </span>
-                    <span className="bill-meta-item">
-                      <span className="bill-meta-dot bill-dot-gold" aria-hidden="true" />
-                      ON-SITE GENERATION
-                    </span>
-                  </div>
-                </div>
-                <div className="bill-coord-mark bill-coord-tr" aria-hidden="true">X 1.00 / Y 0.00</div>
-                <div className="bill-coord-mark bill-coord-br" aria-hidden="true">X 1.00 / Y 1.00</div>
-                <div className="bill-watermark bill-watermark-right" aria-hidden="true">EN ENERGY / SYSTEM IMPACT</div>
-              </div>
-
-              <div className="bill-comparison-divider" style={{ left: `${split}%` }} aria-hidden="true" />
-
-              <div
-                className={`bill-comparison-handle ${isDragging ? 'is-active' : ''}`}
-                style={{ left: `${split}%` }}
-                role="slider"
-                tabIndex={0}
-                aria-label="Before and after solar electricity bill comparison slider"
-                aria-orientation="horizontal"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(split)}
-                aria-valuetext={handleAriaText}
-                onKeyDown={handleKeyDown}
-                onMouseDown={handleStart}
-                onTouchStart={handleStart}
-              >
-                <div className="bill-handle-ring" aria-hidden="true">
-                  <svg className="bill-handle-arrows" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <polyline points="15 6 9 12 15 18" />
-                    <polyline points="9 6 15 12 9 18" />
-                  </svg>
-                </div>
-                <div className="bill-handle-glow" aria-hidden="true" />
-              </div>
-
-              <div className="bill-tech-overlay" aria-hidden="true">
-                <span className="bill-tech-label">DYNAMIC SPLIT</span>
-                <span className="bill-tech-value">{Math.round(split)}%</span>
-              </div>
-
-              <div className="bill-live-metrics" aria-hidden="true">
-                <div className="bill-live-item">
-                  <span className="bill-live-label">SOLAR OFFSET</span>
-                  <span className="bill-live-value">{Math.round(solarOffsetPercent * (split / 100 + 0.0))}%</span>
-                </div>
-                <div className="bill-live-item">
-                  <span className="bill-live-label">MONTHLY REDUCTION</span>
-                  <span className="bill-live-value">{formatPKR(dynamicReduction)}</span>
-                </div>
-              </div>
+        {/* Drag stage */}
+        <div
+          ref={containerRef}
+          className={`es-compare-stage ${isDragging ? 'is-dragging' : ''} ${!hasInteracted ? 'is-teaching' : ''}`}
+          onMouseDown={handleStart}
+          onTouchStart={handleStart}
+        >
+          <div className="es-compare-stage-inner">
+            <div className="es-compare-pane es-compare-pane-before" style={{ clipPath: beforeClip }}>
+              <span className="es-compare-pane-badge">Today</span>
+              <p className="es-compare-pane-label">Monthly bill</p>
+              <p className="es-compare-pane-amount">
+                <span>PKR</span> {formatNum(beforeBill)}
+              </p>
+              <ul className="es-compare-pane-points">
+                <li>Full bill from the grid</li>
+                <li>Costs rise with tariffs</li>
+              </ul>
             </div>
+
+            <div className="es-compare-pane es-compare-pane-after" style={{ clipPath: afterClip }}>
+              <span className="es-compare-pane-badge es-compare-pane-badge-good">With solar</span>
+              <p className="es-compare-pane-label">Estimated monthly bill</p>
+              <p className="es-compare-pane-amount es-compare-pane-amount-good">
+                <span>PKR</span> {formatNum(afterBill)}
+              </p>
+              <ul className="es-compare-pane-points">
+                <li>Lower monthly outgo</li>
+                <li>Power from your roof</li>
+              </ul>
+            </div>
+
+            <div className="es-compare-divider" style={{ left: `${split}%` }} aria-hidden="true" />
+
+            <div
+              className={`es-compare-handle ${isDragging ? 'is-active' : ''}`}
+              style={{ left: `${split}%` }}
+              role="slider"
+              tabIndex={0}
+              aria-label="Drag to compare today versus with solar"
+              aria-orientation="horizontal"
+              aria-valuemin={8}
+              aria-valuemax={92}
+              aria-valuenow={Math.round(split)}
+              aria-valuetext={`Showing ${Math.round(split)}% today and ${Math.round(100 - split)}% with solar`}
+              onKeyDown={handleKeyDown}
+              onMouseDown={handleStart}
+              onTouchStart={handleStart}
+            >
+              <span className="es-compare-handle-icon" aria-hidden="true">
+                <GripVertical size={18} />
+              </span>
+            </div>
+
+            {!hasInteracted && (
+              <div className="es-compare-coach" aria-hidden="true">
+                <span>← Drag to compare →</span>
+              </div>
+            )}
           </div>
-        </ScrollReveal>
+        </div>
 
-        <ScrollReveal delay={240}>
-          <div className="bill-metrics" role="list" aria-label="Bill comparison summary metrics">
-            <div className="bill-metric-card" role="listitem" style={{ transitionDelay: '0ms' }}>
-              <span className="bill-metric-label">MONTHLY REDUCTION</span>
-              <span className="bill-metric-value" aria-live="polite">{formatPKR(monthlyReduction)}</span>
-              <span className="bill-metric-accent" aria-hidden="true" />
-            </div>
-            <div className="bill-metric-card" role="listitem" style={{ transitionDelay: '80ms' }}>
-              <span className="bill-metric-label">ANNUAL SAVING</span>
-              <span className="bill-metric-value" aria-live="polite">{formatPKR(annualSaving)}</span>
-              <span className="bill-metric-accent" aria-hidden="true" />
-            </div>
-            <div className="bill-metric-card" role="listitem" style={{ transitionDelay: '160ms' }}>
-              <span className="bill-metric-label">ESTIMATED OFFSET</span>
-              <span className="bill-metric-value" aria-live="polite">{solarOffsetPercent}%</span>
-              <span className="bill-metric-accent" aria-hidden="true" />
-            </div>
-          </div>
-        </ScrollReveal>
+        <div className="es-compare-footer">
+          <p className="es-compare-disclaimer">
+            Example based on your calculator inputs. Actual savings depend on roof, usage, and site survey.
+          </p>
+          <Link href="/contact#contact-form" className="es-btn-primary es-compare-cta">
+            Get this checked for my site
+          </Link>
+        </div>
       </div>
     </section>
   );
-};
-
-export default BeforeAfterBill;
+}

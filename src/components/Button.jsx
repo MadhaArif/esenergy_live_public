@@ -1,16 +1,20 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
 
 const Button = ({
   children,
   to,
+  href,
   onClick,
-  variant = 'primary', // 'primary' | 'secondary' | 'outline' | 'text'
+  variant = 'primary',
   type = 'button',
   className = '',
   disabled = false,
   ...props
 }) => {
+  const destination = href || to;
+
   const baseStyle = {
     display: 'inline-flex',
     alignItems: 'center',
@@ -18,21 +22,24 @@ const Button = ({
     gap: '8px',
     fontFamily: 'var(--font-main)',
     fontSize: '14px',
-    fontWeight: '600',
-    padding: '10px 20px',
-    borderRadius: '6px',
+    fontWeight: '700',
+    padding: '11px 22px',
+    borderRadius: '999px',
     border: '1px solid transparent',
     transition: 'var(--transition-smooth)',
     cursor: disabled ? 'not-allowed' : 'pointer',
     opacity: disabled ? 0.6 : 1,
     width: 'fit-content',
+    letterSpacing: '0.01em',
   };
 
   const variants = {
     primary: {
-      backgroundColor: 'var(--accent-color)',
-      color: 'var(--bg-primary)',
-      borderColor: 'var(--accent-color)',
+      backgroundImage: 'var(--gradient-solar)',
+      backgroundColor: 'var(--brand-green)',
+      color: '#ffffff',
+      borderColor: 'transparent',
+      boxShadow: '0 10px 28px -10px rgba(24, 176, 122, 0.5)',
     },
     secondary: {
       backgroundColor: 'var(--bg-tertiary)',
@@ -46,49 +53,25 @@ const Button = ({
     },
     text: {
       backgroundColor: 'transparent',
-      color: 'var(--accent-light)',
+      color: 'var(--brand-blue)',
       border: 'none',
       padding: '4px 8px',
-    }
+    },
   };
 
   const selectedStyle = variants[variant] || variants.primary;
-  
-  // Custom hover transitions defined dynamically (to keep CSS modular/contained)
-  const handleMouseEnter = (e) => {
-    if (disabled) return;
-    if (variant === 'primary') {
-      e.currentTarget.style.backgroundColor = 'var(--accent-hover)';
-      e.currentTarget.style.borderColor = 'var(--accent-hover)';
-    } else if (variant === 'secondary' || variant === 'outline') {
-      e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
-      e.currentTarget.style.borderColor = 'var(--accent-light)';
-    } else if (variant === 'text') {
-      e.currentTarget.style.color = 'var(--accent-hover)';
-    }
-  };
-
-  const handleMouseLeave = (e) => {
-    if (disabled) return;
-    e.currentTarget.style.backgroundColor = selectedStyle.backgroundColor;
-    e.currentTarget.style.borderColor = selectedStyle.borderColor || 'transparent';
-    e.currentTarget.style.color = selectedStyle.color;
-  };
-
   const { style: customStyle, ...restProps } = props;
 
   const elementProps = {
     className: `custom-btn ${className}`,
-    onMouseEnter: handleMouseEnter,
-    onMouseLeave: handleMouseLeave,
     disabled,
     ...restProps,
     style: { ...baseStyle, ...selectedStyle, ...customStyle },
   };
 
-  if (to) {
+  if (destination) {
     return (
-      <Link to={to} {...elementProps}>
+      <Link href={destination} {...elementProps} onClick={onClick}>
         {children}
       </Link>
     );

@@ -1,383 +1,134 @@
-import React, { useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Menu, X, ShoppingBag } from 'lucide-react';
-import Button from './Button';
-import { useCart } from '../context/CartContext';
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Menu, X, ArrowUpRight } from 'lucide-react';
+import TopUtilityBar from './TopUtilityBar';
+import BrandLogo from './BrandLogo';
+import { navItems } from '@/lib/site';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const navigate = useNavigate();
-  const { totalItems, setIsCartOpen } = useCart();
+  const pathname = usePathname();
 
-  React.useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 12);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const toggleMenu = () => setIsOpen(!isOpen);
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   const closeMenu = () => setIsOpen(false);
 
-  const navItems = [
-    { name: 'Home', path: '/' },
-    { name: 'Solutions', path: '/solutions' },
-    { name: 'Industries', path: '/industries' },
-    { name: 'Projects', path: '/projects' },
-    { name: 'Why Us', path: '/why-us' },
-    { name: 'About', path: '/about' },
-    { name: 'Insights', path: '/insights' },
-    { name: 'Contact', path: '/contact' },
-  ];
-
-  const handleAnchorClick = (path) => {
-    closeMenu();
-    // If we're not on Home, navigate to Home first, then scroll
-    if (window.location.pathname !== '/') {
-      navigate('/');
-      // Wait for navigation and mount to complete before scrolling
-      setTimeout(() => {
-        const element = document.getElementById('why-choose-us');
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
-    } else {
-      const element = document.getElementById('why-choose-us');
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  };
-
-  const navStyle = {
-    position: 'sticky',
-    top: 0,
-    zIndex: 1000,
-    backgroundColor: scrolled ? 'rgba(255, 255, 255, 0.85)' : 'var(--bg-primary)',
-    backdropFilter: scrolled ? 'blur(12px)' : 'none',
-    WebkitBackdropFilter: scrolled ? 'blur(12px)' : 'none',
-    borderBottom: scrolled ? '1px solid rgba(15, 23, 42, 0.06)' : '1px solid var(--border-color)',
-    boxShadow: scrolled ? '0 4px 30px rgba(15, 23, 42, 0.02)' : 'none',
-    height: '80px',
-    display: 'flex',
-    alignItems: 'center',
-    transition: 'background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease',
-  };
-
-  const containerStyle = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-  };
-
-  const logoStyle = {
-    fontSize: '22px',
-    fontWeight: '800',
-    letterSpacing: '-0.03em',
-    color: 'var(--text-primary)',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  };
-
-  const menuStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '24px',
-  };
-
-  const linkStyle = ({ isActive }) => ({
-    display: 'none', // deprecated in favor of CSS classes
-  });
-
-  const mobileNavContainerStyle = {
-    display: isOpen ? 'flex' : 'none',
-    position: 'fixed',
-    top: '80px',
-    left: 0,
-    width: '100%',
-    height: 'calc(100vh - 80px)',
-    backgroundColor: 'var(--bg-primary)',
-    flexDirection: 'column',
-    padding: '40px 24px',
-    gap: '24px',
-    borderTop: '1px solid var(--border-color)',
-    zIndex: 999,
+  const isItemActive = (path) => {
+    const itemPath = path.split('#')[0];
+    return itemPath === '/' ? pathname === '/' : pathname.startsWith(itemPath);
   };
 
   return (
-    <nav style={navStyle}>
-      <div className="container" style={containerStyle}>
-        {/* Brand Logo */}
-        <Link to="/" style={logoStyle} className="nav-logo" onClick={closeMenu}>
-          <span style={{ border: '2px solid var(--text-primary)', padding: '2px 8px', borderRadius: '4px' }}>EN</span>
-          <span>Energy</span>
-        </Link>
+    <header className={`es-header ${scrolled ? 'is-scrolled' : ''} ${isOpen ? 'is-menu-open' : ''}`}>
+      <TopUtilityBar />
+      <nav className={`site-navbar es-navbar ${scrolled ? 'is-scrolled' : ''}`} aria-label="Primary">
+        <div className="container site-navbar-inner es-nav-inner">
+          <BrandLogo variant="nav" className="es-nav-brand" />
 
-        {/* Desktop Menu */}
-        <div style={menuStyle} className="desktop-menu">
-          <ul style={{ display: 'flex', listStyle: 'none', gap: '24px', alignItems: 'center', margin: 0, padding: 0 }}>
-            {navItems.map((item) => (
-              <li key={item.name}>
-                {item.isAnchor ? (
-                  <button
-                    onClick={() => handleAnchorClick(item.path)}
-                    className="nav-anchor-btn"
-                  >
-                    {item.name}
-                  </button>
-                ) : (
-                  <NavLink 
-                    to={item.path} 
-                    className={({ isActive }) => `nav-link-item ${isActive ? 'active' : ''}`}
-                  >
-                    {item.name}
-                  </NavLink>
-                )}
-              </li>
-            ))}
-          </ul>
-          
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <button
-              onClick={() => setIsCartOpen(true)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-secondary)',
-                fontSize: '14px',
-                fontWeight: '600',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                cursor: 'pointer',
-                transition: 'var(--transition-smooth)',
-                padding: '8px 12px',
-                borderRadius: '4px',
-                marginRight: '12px',
-              }}
-              className="navbar-cart-btn"
-            >
-              <ShoppingBag size={16} />
-              <span>Cart ({totalItems})</span>
-            </button>
+          <div className="desktop-menu site-navbar-desktop es-nav-desktop">
+            <ul className="site-nav-list es-nav-list">
+              {navItems.map((item) => {
+                const active = isItemActive(item.path);
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.path}
+                      className={`nav-link-item es-nav-link ${active ? 'active' : ''}`}
+                      aria-current={active ? 'page' : undefined}
+                    >
+                      <span>{item.name}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
 
-            <Button to="/contact" variant="primary">Get a Quote</Button>
+            <div className="es-nav-actions">
+              <Link href="/contact#contact-form" className="es-btn-primary es-nav-cta">
+                Get a quote
+                <ArrowUpRight size={16} aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsOpen((open) => !open)}
+            className={`mobile-toggle es-nav-toggle ${isOpen ? 'is-open' : ''}`}
+            aria-label={isOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isOpen}
+            aria-controls="es-mobile-nav"
+          >
+            <span className="es-nav-toggle-icon" aria-hidden="true">
+              {isOpen ? <X size={22} strokeWidth={2.2} /> : <Menu size={22} strokeWidth={2.2} />}
+            </span>
+          </button>
+        </div>
+
+        <div
+          id="es-mobile-nav"
+          className={`mobile-drawer es-mobile-drawer ${isOpen ? 'open' : ''}`}
+          hidden={!isOpen}
+        >
+          <div className="es-mobile-drawer-panel">
+            <p className="es-mobile-drawer-label">Navigate</p>
+            <ul>
+              {navItems.map((item) => {
+                const active = isItemActive(item.path);
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.path}
+                      onClick={closeMenu}
+                      className={active ? 'active' : ''}
+                      aria-current={active ? 'page' : undefined}
+                    >
+                      {item.name}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="mobile-drawer-actions es-mobile-drawer-actions">
+              <Link
+                href="/contact#contact-form"
+                className="es-btn-primary"
+                onClick={closeMenu}
+              >
+                Get a quote
+              </Link>
+              <Link
+                href="/calculator"
+                className="es-nav-secondary es-nav-secondary-block"
+                onClick={closeMenu}
+              >
+                Open calculator
+              </Link>
+            </div>
           </div>
         </div>
-
-        {/* Mobile Toggle Button */}
-        <button
-          onClick={toggleMenu}
-          className="mobile-toggle"
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--text-primary)',
-            cursor: 'pointer',
-            display: 'none', // Overridden in custom media CSS or inline layout checks
-          }}
-        >
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
-
-      {/* Mobile Navigation Drawer */}
-      <div className={`mobile-drawer ${isOpen ? 'open' : ''}`}>
-        <ul style={{ display: 'flex', flexDirection: 'column', listStyle: 'none', gap: '20px', padding: 0, margin: 0 }}>
-          {navItems.map((item) => (
-            <li key={item.name} style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
-              {item.isAnchor ? (
-                <button
-                  onClick={() => handleAnchorClick(item.path)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    fontFamily: 'var(--font-main)',
-                    fontSize: '18px',
-                    fontWeight: '600',
-                    color: 'var(--text-primary)',
-                    textAlign: 'left',
-                    width: '100%',
-                    padding: 0,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {item.name}
-                </button>
-              ) : (
-                <Link
-                  to={item.path}
-                  onClick={closeMenu}
-                  style={{
-                    fontSize: '18px',
-                    fontWeight: '600',
-                    color: 'var(--text-primary)',
-                    display: 'block',
-                  }}
-                >
-                  {item.name}
-                </Link>
-              )}
-            </li>
-          ))}
-        </ul>
-        
-        <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <button
-            onClick={() => {
-              closeMenu();
-              setIsCartOpen(true);
-            }}
-            style={{
-              width: '100%',
-              backgroundColor: 'var(--bg-secondary)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '4px',
-              padding: '12px',
-              fontWeight: '600',
-              color: 'var(--text-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              cursor: 'pointer'
-            }}
-          >
-            <ShoppingBag size={18} />
-            <span>Cart ({totalItems})</span>
-          </button>
-
-          <Button to="/contact" variant="primary" style={{ width: '100%' }} onClick={closeMenu}>
-            Get a Quote
-          </Button>
-        </div>
-      </div>
-
-      {/* Responsive stylesheet inject for navbar */}
-      <style>{`
-        .nav-link-item {
-          font-family: var(--font-main);
-          font-size: 14px;
-          font-weight: 550;
-          color: var(--text-secondary);
-          position: relative;
-          padding: 8px 0;
-          text-decoration: none;
-          transition: color var(--motion-fast) ease;
-        }
-        .nav-link-item:hover {
-          color: var(--text-primary);
-        }
-        .nav-link-item.active {
-          color: var(--accent-gold);
-          font-weight: 600;
-        }
-        .nav-link-item::after {
-          content: '';
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          height: 2px;
-          background-color: var(--accent-gold);
-          transform: scaleX(0);
-          transform-origin: right;
-          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .nav-link-item.active::after {
-          transform: scaleX(1);
-          transform-origin: left;
-        }
-
-        .nav-anchor-btn {
-          background: none;
-          border: none;
-          font-family: var(--font-main);
-          font-size: 14px;
-          font-weight: 550;
-          color: var(--text-secondary);
-          padding: 8px 0;
-          cursor: pointer;
-          transition: color var(--motion-fast) ease;
-        }
-        .nav-anchor-btn:hover {
-          color: var(--text-primary);
-        }
-
-        .mobile-drawer {
-          display: none;
-        }
-        
-        .nav-logo {
-          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .nav-logo:hover {
-          transform: translateY(-1px);
-        }
-        .nav-logo:hover span:first-child {
-          background-color: var(--text-primary) !important;
-          color: var(--bg-primary) !important;
-        }
-
-        @media (max-width: 991px) {
-          .desktop-menu {
-            display: none !important;
-          }
-          .mobile-toggle {
-            display: block !important;
-          }
-          .mobile-drawer {
-            display: flex !important;
-            position: fixed;
-            top: 80px;
-            left: 0;
-            width: 100%;
-            height: calc(100vh - 80px);
-            background-color: var(--bg-primary);
-            flex-direction: column;
-            padding: 40px 24px;
-            gap: 24px;
-            border-top: 1px solid var(--border-color);
-            z-index: 999;
-            transform: translateY(-10px);
-            opacity: 0;
-            pointer-events: none;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          }
-          .mobile-drawer.open {
-            transform: translateY(0);
-            opacity: 1;
-            pointer-events: auto;
-          }
-          .mobile-drawer ul li {
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          }
-          .mobile-drawer.open ul li {
-            opacity: 1;
-            transform: translateY(0);
-          }
-          .mobile-drawer.open ul li:nth-child(1) { transition-delay: 0.05s; }
-          .mobile-drawer.open ul li:nth-child(2) { transition-delay: 0.1s; }
-          .mobile-drawer.open ul li:nth-child(3) { transition-delay: 0.15s; }
-          .mobile-drawer.open ul li:nth-child(4) { transition-delay: 0.2s; }
-          .mobile-drawer.open ul li:nth-child(5) { transition-delay: 0.25s; }
-          .mobile-drawer.open ul li:nth-child(6) { transition-delay: 0.3s; }
-          .mobile-drawer.open ul li:nth-child(7) { transition-delay: 0.35s; }
-          .mobile-drawer.open ul li:nth-child(8) { transition-delay: 0.4s; }
-        }
-      `}</style>
-    </nav>
+      </nav>
+    </header>
   );
 };
 
