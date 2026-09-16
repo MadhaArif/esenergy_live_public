@@ -7,7 +7,7 @@
     "dev:fast": "next dev",
     "dev:clean": "rm -rf .next && next dev",
     "build": "node scripts/build.mjs",
-    "start": "next start",
+    "start": "next start -p ${PORT:-3000}",
     "lint": "next lint"
   },
   "dependencies": {
