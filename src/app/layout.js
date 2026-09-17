@@ -34,6 +34,12 @@ export const metadata = {
     locale: 'en_PK',
     type: 'website',
   },
+  verification: {
+    google: [
+      'google1570bb7c75d5ba94',
+      'google640f9d0c0ef45fb3',
+    ],
+  },
 };
 
 export default function RootLayout({ children }) {
