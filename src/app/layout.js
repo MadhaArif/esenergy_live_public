@@ -10,7 +10,7 @@ import { siteConfig } from '@/lib/site';
 export const metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name} | ${siteConfig.tagline}`,
+    default: `${siteConfig.tagline} – ${siteConfig.name}`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
@@ -19,7 +19,7 @@ export const metadata = {
     apple: '/logo.jpg',
   },
   openGraph: {
-    title: `${siteConfig.name} | ${siteConfig.tagline}`,
+    title: `${siteConfig.tagline} – ${siteConfig.name}`,
     description: siteConfig.description,
     url: siteConfig.url,
     siteName: siteConfig.name,

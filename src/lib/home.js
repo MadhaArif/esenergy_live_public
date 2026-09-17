@@ -1,13 +1,13 @@
 import { siteImages } from './images';
 
 export const heroContent = {
-  kicker: 'ES Energy · Engineered Solar',
+  kicker: 'ES Energy · Lahore',
   titlePrefix: 'Powering',
-  rotatingWords: ['homes', 'businesses', 'factories', 'Pakistan'],
+  rotatingWords: ['homes', 'businesses', 'factories', 'Lahore'],
   titleSuffix: 'with clean solar energy',
   lead:
-    'From site survey and system design to installation and net metering — we deliver solar built to perform for decades.',
-  trustBullets: ['Tier-1 components', 'Net metering support', 'Residential to industrial'],
+    'From site survey and system design to installation and net metering — reliable solar solutions in Lahore, built to perform for decades.',
+  trustBullets: ['Tier-1 components', 'Net metering support', 'Based in Lahore'],
   panelLabel: 'Why customers choose us',
   panelItems: [
     { title: 'Engineering-first', text: 'Systems sized from real load data' },
