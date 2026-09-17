@@ -3,9 +3,13 @@ import './brand.css';
 import './premium.css';
 import './es-design.css';
 import './es-motion.css';
+import Script from 'next/script';
 import Providers from '@/components/Providers';
 import SiteShell from '@/components/SiteShell';
 import { siteConfig } from '@/lib/site';
+
+const GA_MEASUREMENT_ID =
+  process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-6Z220NSK2W';
 
 export const metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -58,6 +62,18 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body suppressHydrationWarning>
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
         <Providers>
           <SiteShell>{children}</SiteShell>
         </Providers>
