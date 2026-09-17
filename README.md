@@ -1,4 +1,4 @@
- ES Energy
+ ESEnergy
 
 Next.js website for **ES Energy** — engineered solar solutions for residential, commercial, and industrial projects in Pakistan.
 
