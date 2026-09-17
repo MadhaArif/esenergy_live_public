@@ -3,7 +3,7 @@ export const siteConfig = {
   legalName: 'ES Energy',
   tagline: 'Reliable Solar Solutions in Lahore',
   description:
-    'Premium engineering-led solar solutions for homes, businesses, and industrial facilities in Lahore and across Pakistan. System design, installation, and net metering support.',
+    'Leading solar company in Lahore, providing innovative solar solutions and services for a sustainable future. Expert installation of solar panels for homes, businesses, and industry across Pakistan.',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://esenergy.net',
   email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@esenergy.net',
   phone: process.env.NEXT_PUBLIC_PHONE_NUMBER || '',

@@ -4104,7 +4104,7 @@ export const productsData = [
       "Cell balance function",
       "Metal case for excellent heat dissipation and enhanced safety"
     ],
-    "detailedDescription": "Coretech 24V 100A Lithium Battery with 6000 Lifecycles ready Stock available at Kamal Solar House Multan | Compatible with most Solar Inverters in Pakistan like Solis Growatt Voltronic Solar Inverters #kamalsolarhouse #solarpanel #solarpanels #solarinverter #lithiumbattery #coretech #coretechlithiumbattery ES-BOX36S LiFePO4 Battery • A grade brand new prismatic LiFePO4 cells • 6000 cycles @80% DOD (25℃, 0.5C) • Over charge, over discharge, over temperature, low temperature, over current and short circuit protection • LCD display screen to monitor cell SOC, voltage, temperature and alarm status • Cell balance function • Metal case for excellent heat dissipation and enhanced safety • Max 2 battery packs in series • Max 16 battery packs in parallel • Communication Port: USB/RS232, RS485, CAN • Many inverters can be compatible • Work Temperature: Charge 0 50℃, Discharge -20 65℃, Storage -20~45℃ • Recommended to charge every 3 months if not in use Technical Details: Energy: 2.5kWh Rated Voltage: 25.4V Capacity: 100Ah Max Charge Current: 100A Max Discharge Current: 100A",
+    "detailedDescription": "Coretech 24V 100A Lithium Battery with 6000 Lifecycles ready Stock available at Kamal Solar House | Compatible with most Solar Inverters in Pakistan like Solis Growatt Voltronic Solar Inverters #kamalsolarhouse #solarpanel #solarpanels #solarinverter #lithiumbattery #coretech #coretechlithiumbattery ES-BOX36S LiFePO4 Battery • A grade brand new prismatic LiFePO4 cells • 6000 cycles @80% DOD (25℃, 0.5C) • Over charge, over discharge, over temperature, low temperature, over current and short circuit protection • LCD display screen to monitor cell SOC, voltage, temperature and alarm status • Cell balance function • Metal case for excellent heat dissipation and enhanced safety • Max 2 battery packs in series • Max 16 battery packs in parallel • Communication Port: USB/RS232, RS485, CAN • Many inverters can be compatible • Work Temperature: Charge 0 50℃, Discharge -20 65℃, Storage -20~45℃ • Recommended to charge every 3 months if not in use Technical Details: Energy: 2.5kWh Rated Voltage: 25.4V Capacity: 100Ah Max Charge Current: 100A Max Discharge Current: 100A",
     "technicalDetails": {
       "overview": {
         "Brand": "Coretech",
@@ -4583,7 +4583,7 @@ export const productsData = [
       "Rated power capacity of 7 kW for system loads",
       "Achieves peak conversion efficiency up to 98.2% peak"
     ],
-    "detailedDescription": "Kamal Solar Local Inverter 7 KW and 10 KW ready stock available at Kamal Solar House, Multan | This Solar inverter runs only on Solar Panels without a battery and WAPDA | Low price Dasi solar inverter #kamalsolarhouse #localinverter #dasiinverter #solarinverter #solarpanels #solarsystem Advanced Off-Grid Local Dasi Solar Inverter – WAPDA Sharing, Daily Usage &amp; Production Tracking Upgrade your solar power system with this feature-rich Off-Grid Local Dasi Solar Inverter , built for efficient performance, smart load management, and real-time energy insights. ✅ Off-Grid Capability – Operates without grid dependency for true energy independence. ✅ Direct Solar Panel Operation – Connects and runs directly on solar panels, no batteries needed. ✅ WAPDA Sharing Option – Balances power between solar and WAPDA intelligently. ✅ Auto-Switch to WAPDA – Automatically converts to grid power during low solar availability. ✅ Warranty – Service-only warranty (no parts included). ✅ No Wi-Fi Needed – Simple setup, no internet or app required. ✅ Premium Digital Display – Easy-to-read screen with live system stats. ✅ Daily Solar Production Tracking – Shows how many units (kWh) were produced by the inverter each day. ✅ Daily Usage Monitoring – Displays how many units were consumed/used throughout the day. Ideal for users who want a clear understanding of their daily solar savings and electricity usage —perfect for homes, shops, and small businesses.",
+    "detailedDescription": "Kamal Solar Local Inverter 7 KW and 10 KW ready stock available at Kamal Solar House | This Solar inverter runs only on Solar Panels without a battery and WAPDA | Low price Dasi solar inverter #kamalsolarhouse #localinverter #dasiinverter #solarinverter #solarpanels #solarsystem Advanced Off-Grid Local Dasi Solar Inverter – WAPDA Sharing, Daily Usage &amp; Production Tracking Upgrade your solar power system with this feature-rich Off-Grid Local Dasi Solar Inverter , built for efficient performance, smart load management, and real-time energy insights. ✅ Off-Grid Capability – Operates without grid dependency for true energy independence. ✅ Direct Solar Panel Operation – Connects and runs directly on solar panels, no batteries needed. ✅ WAPDA Sharing Option – Balances power between solar and WAPDA intelligently. ✅ Auto-Switch to WAPDA – Automatically converts to grid power during low solar availability. ✅ Warranty – Service-only warranty (no parts included). ✅ No Wi-Fi Needed – Simple setup, no internet or app required. ✅ Premium Digital Display – Easy-to-read screen with live system stats. ✅ Daily Solar Production Tracking – Shows how many units (kWh) were produced by the inverter each day. ✅ Daily Usage Monitoring – Displays how many units were consumed/used throughout the day. Ideal for users who want a clear understanding of their daily solar savings and electricity usage —perfect for homes, shops, and small businesses.",
     "technicalDetails": {
       "overview": {
         "Product Type": "Solar Inverter",
@@ -4771,7 +4771,7 @@ export const productsData = [
       "Rated power capacity of 6200 W for system loads",
       "Achieves peak conversion efficiency up to 98.2% peak"
     ],
-    "detailedDescription": "Knox Krypton 6.2KW PV9000 Hybrid Solar Inverter ready stock available at Kamal Solar House Multan | This solar inverter starts working earlier then other solar inverters #kamalsolarhouse #solarinverter #knoxsolar #solarinverters #solarenergy General",
+    "detailedDescription": "Knox Krypton 6.2KW PV9000 Hybrid Solar Inverter ready stock available at Kamal Solar House | This solar inverter starts working earlier then other solar inverters #kamalsolarhouse #solarinverter #knoxsolar #solarinverters #solarenergy General",
     "technicalDetails": {
       "overview": {
         "Product Type": "Hybrid Inverter",
@@ -5877,7 +5877,7 @@ export const productsData = [
       "Rated power capacity of 8kW for system loads",
       "Achieves peak conversion efficiency up to 98.2% peak"
     ],
-    "detailedDescription": "Solis hybrid 6kw and 8kw Solar inverter with LCD at lowest price at Kamal Solar House Multan The Solis 8KW IP66 L Plus Model Hybrid Inverter is a high-performance, versatile energy solution designed for both residential and commercial solar systems. Built to maximize energy efficiency, it integrates seamlessly with solar arrays, batteries, and generators. Offering advanced",
+    "detailedDescription": "Solis hybrid 6kw and 8kw Solar inverter with LCD at lowest price at Kamal Solar House The Solis 8KW IP66 L Plus Model Hybrid Inverter is a high-performance, versatile energy solution designed for both residential and commercial solar systems. Built to maximize energy efficiency, it integrates seamlessly with solar arrays, batteries, and generators. Offering advanced",
     "technicalDetails": {
       "overview": {
         "Product Type": "Hybrid Inverter",
@@ -5928,7 +5928,7 @@ export const productsData = [
       "Battery Compatibility Compatible with Li-ion and Lead-acid batteries , offering flexibility in storage solutions.",
       "135A charge/discharge current supports efficient energy management."
     ],
-    "detailedDescription": "Solis hybrid 6kw and 8kw Solar inverter with LCD at lowest price at Kamal Solar House Multan The Solis S6-EH1P6K-L-PLUS 6KW Hybrid Solar Inverter offers an efficient and versatile solution for residential and commercial energy needs. With advanced hybrid technology, high surge power capacity, and compatibility with multiple energy sources, this inverter ensures reliability and performance.",
+    "detailedDescription": "Solis hybrid 6kw and 8kw Solar inverter with LCD at lowest price at Kamal Solar House The Solis S6-EH1P6K-L-PLUS 6KW Hybrid Solar Inverter offers an efficient and versatile solution for residential and commercial energy needs. With advanced hybrid technology, high surge power capacity, and compatibility with multiple energy sources, this inverter ensures reliability and performance.",
     "technicalDetails": {
       "overview": {
         "Product Type": "Hybrid Inverter",
