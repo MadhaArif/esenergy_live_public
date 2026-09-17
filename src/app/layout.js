@@ -15,8 +15,15 @@ export const metadata = {
   },
   description: siteConfig.description,
   icons: {
-    icon: '/logo.jpg',
-    apple: '/logo.jpg',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-48x48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    shortcut: '/favicon.ico',
   },
   openGraph: {
     title: `${siteConfig.tagline} – ${siteConfig.name}`,
@@ -33,6 +40,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/site.webmanifest" />
+        <meta name="theme-color" content="#0B1F3A" />
         <link rel="preload" as="image" href="/hero_solar_architecture.webp" fetchPriority="high" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

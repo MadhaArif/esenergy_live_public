@@ -1,0 +1,21 @@
+{
+  "name": "ES Energy",
+  "short_name": "ES Energy",
+  "description": "Reliable Solar Solutions in Lahore",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0f1d",
+  "theme_color": "#0a0f1d",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
